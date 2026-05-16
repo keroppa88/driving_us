@@ -34,6 +34,7 @@
 
 ### 演出
 音楽に合わせて空の色、星の有無、雨の有無などが変化する。
+砂漠だけど雨は降る。
 空は上空と地平線近くの2種類を設定可能。
 個別設定なので、とくに設定していない曲が多い。
 雰囲気系だと紫系の色を選びがちで、それじゃ芸がないというのもある。
@@ -47,13 +48,13 @@
 * 3D空間はスケッチアップWEBで制作、謎の独自型式SKPから一般的なGLBに変換する際の色情報喪失などに苦戦した。
 * 無料著名ソフト・ブレンダーなど使ってみたが煩雑すぎて難易度が高そうだったので早々に見切りをつけた。
 * 最終的には、スケッチアップの7日間フリートライアルに加入してGLB出力した。
-* 衝突設定は無し。ゴーストライダー的な。死んで浮遊しているのかもしれない。
+* 衝突設定は無し。ゴーストライダー的な。死んで浮遊しているのかもしれない・・・
 
-* <img width="300" height="303" alt="image" src="https://github.com/user-attachments/assets/9170510b-f5f2-4e37-b8d1-92dd9f11373d" />  　
-* <img width="300" height="140" alt="image" src="https://github.com/user-attachments/assets/935ae174-6fad-47cd-94f5-6ad42bae2e22" />  
-* <img width="300" height="240" alt="image" src="https://github.com/user-attachments/assets/3922ddbd-f3e2-4e99-9780-c017fb9b27e3" />  
-* <img width="300" height="320" alt="image" src="https://github.com/user-attachments/assets/4fbee28e-7c48-4b03-8076-ec77f5b4bdf4" />  
-* <img width="300" height="270" alt="image" src="https://github.com/user-attachments/assets/4183cdd6-c4e2-40fc-b026-1e6075e4ed3f" />  
+> <img width="300" height="303" alt="image" src="https://github.com/user-attachments/assets/9170510b-f5f2-4e37-b8d1-92dd9f11373d" />
+> <img width="300" height="140" alt="image" src="https://github.com/user-attachments/assets/935ae174-6fad-47cd-94f5-6ad42bae2e22" />  
+> <img width="300" height="240" alt="image" src="https://github.com/user-attachments/assets/3922ddbd-f3e2-4e99-9780-c017fb9b27e3" />  
+> <img width="300" height="320" alt="image" src="https://github.com/user-attachments/assets/4fbee28e-7c48-4b03-8076-ec77f5b4bdf4" />  
+> <img width="300" height="270" alt="image" src="https://github.com/user-attachments/assets/4183cdd6-c4e2-40fc-b026-1e6075e4ed3f" />  
 
 ## インストール
 * ウェブのブラウザでプレイできる。
