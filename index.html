@@ -259,7 +259,7 @@ let gpSelectPrev    = false;
 let playlist      = [{ id: 'Uw5OLnN7UvM', name: '', color: null, rain: false }];
 let playlistIdx   = 0;
 let ytSelectTimer = null;
-let musicLabelEnabled = true;
+let displayMode = 0; // 0=全表示 1=速度・音楽非表示 2=+十字非表示
 let isBrowsing        = false;
 
 async function loadPlaylist() {
@@ -311,12 +311,13 @@ function selectTrack(delta) {
   playlistIdx = ((playlistIdx + delta) % playlist.length + playlist.length) % playlist.length;
   const entry = playlist[playlistIdx];
   isBrowsing = entry.type !== 'label';
-  // 非表示中でも上下操作で復活
+  displayMode = 0;
   document.getElementById('coords').style.display = 'block';
   connectingEl.style.display = 'block';
   connectingEl.textContent = entry.type === 'label'
     ? `── ${entry.name} ──`
     : trackLabel(entry);
+  crosshair.classList.toggle('show', locked && displayMode < 2);
 }
 
 function confirmTrack() {
@@ -535,9 +536,25 @@ const keys      = {};
 const crosshair = document.getElementById('crosshair');
 const dbg       = document.getElementById('debug');
 
+function applyDisplayMode() {
+  const coordsEl = document.getElementById('coords');
+  if (displayMode === 0) {
+    coordsEl.style.display = 'block';
+    const cur = playlist[playlistIdx];
+    if (cur && cur.type !== 'label') {
+      connectingEl.style.display = 'block';
+      connectingEl.textContent = trackLabel(cur);
+    }
+  } else {
+    coordsEl.style.display = 'none';
+    connectingEl.style.display = 'none';
+  }
+  crosshair.classList.toggle('show', locked && displayMode < 2);
+}
+
 document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === document.body;
-  crosshair.classList.toggle('show', locked);
+  crosshair.classList.toggle('show', locked && displayMode < 2);
   if (locked) {
     overlay.classList.add('hidden');
   } else {
@@ -562,17 +579,8 @@ window.addEventListener('keydown', e => {
     else toggleYt();
   }
   if (e.code === 'KeyA' && !e.repeat) {
-    musicLabelEnabled = !musicLabelEnabled;
-    document.getElementById('coords').style.display = musicLabelEnabled ? 'block' : 'none';
-    if (!musicLabelEnabled) {
-      connectingEl.style.display = 'none';
-    } else {
-      const cur = playlist[playlistIdx];
-      if (cur && cur.type !== 'label') {
-        connectingEl.style.display = 'block';
-        connectingEl.textContent = trackLabel(cur);
-      }
-    }
+    displayMode = (displayMode + 1) % 3;
+    applyDisplayMode();
   }
   if (e.code === 'ArrowUp'    && !e.repeat) { selectTrack(-1); e.preventDefault(); }
   if (e.code === 'ArrowDown'  && !e.repeat) { selectTrack(+1); e.preventDefault(); }
@@ -878,17 +886,8 @@ function updateMovement() {
       else toggleYt();
     }
     if (btnA && !gpBtnAPrev) {
-      musicLabelEnabled = !musicLabelEnabled;
-      document.getElementById('coords').style.display = musicLabelEnabled ? 'block' : 'none';
-      if (!musicLabelEnabled) {
-        connectingEl.style.display = 'none';
-      } else {
-        const cur = playlist[playlistIdx];
-        if (cur && cur.type !== 'label') {
-          connectingEl.style.display = 'block';
-          connectingEl.textContent = trackLabel(cur);
-        }
-      }
+      displayMode = (displayMode + 1) % 3;
+      applyDisplayMode();
     }
     if (btnSelect && !gpSelectPrev && locked) document.exitPointerLock();
     gpDpadUpPrev    = dpadUp;
