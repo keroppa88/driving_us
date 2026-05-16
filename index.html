@@ -371,7 +371,11 @@ async function initYTPlayer() {
         events: {
           onReady: e => { ytReady = true; console.log('[YT] player ready'); resolve(e.target); },
           onStateChange: e => {
-            if (e.data === 1) { connectingEl.style.display = 'none'; isBrowsing = false; }
+            if (e.data === 1) {
+              connectingEl.style.display = 'none';
+              isBrowsing = false;
+              ytPlayer.setVolume(Math.min(100, Math.max(0, Math.round(parseInt(ytVolSlider.value) * currentVolAdj))));
+            }
             if (e.data === 0) { // 曲終了 → 音量リセット
               currentVolAdj = 1.0;
               ytPlayer.setVolume(parseInt(ytVolSlider.value));
