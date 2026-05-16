@@ -416,52 +416,39 @@ function toggleYt() {
   ytPlayer.getPlayerState() === 1 ? ytPlayer.pauseVideo() : ytPlayer.playVideo();
 }
 
-// ── BGM (Web Audio API ギャップレスループ) ───────────────────────────────
+// ── BGM (HTMLAudioElement ストリーミング再生) ─────────────────────────────
 let audioCtx     = null;
 let masterGain   = null;
-const audioBufs  = {};
-let playingSrc   = null;
 let playingKey   = null;
 
-async function initAudio() {
+const _eng1 = new Audio('music/drive_on_freeway1.mp3'); _eng1.loop = true;
+const _eng2 = new Audio('music/drive_on_freeway2.mp3'); _eng2.loop = true;
+let _eng1Src = null, _eng2Src = null;
+
+function initAudio() {
   if (audioCtx) return;
   audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
   masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.7;
   masterGain.connect(audioCtx.destination);
-  // freeway1 を先に読み込んで即再生
-  const ab1 = await (await fetch('music/drive_on_freeway1.mp3')).arrayBuffer();
-  audioBufs['freeway1'] = await audioCtx.decodeAudioData(ab1);
-  playBgm('freeway1');
-  // freeway2 はバックグラウンドで読み込む
-  fetch('music/drive_on_freeway2.mp3')
-    .then(r => r.arrayBuffer())
-    .then(ab => audioCtx.decodeAudioData(ab))
-    .then(buf => { audioBufs['freeway2'] = buf; })
-    .catch(console.error);
+  _eng1Src = audioCtx.createMediaElementSource(_eng1);
+  _eng2Src = audioCtx.createMediaElementSource(_eng2);
+  _eng1Src.connect(masterGain);
+  _eng2Src.connect(masterGain);
+  _eng1.play().catch(console.error);
+  playingKey = 'freeway1';
 }
-
-function unlockAudio() {
-  initAudio().catch(console.error);
-  document.removeEventListener('click',     unlockAudio);
-  document.removeEventListener('keydown',   unlockAudio);
-  document.removeEventListener('touchstart',unlockAudio);
-}
-document.addEventListener('click',     unlockAudio);
-document.addEventListener('keydown',   unlockAudio);
-document.addEventListener('touchstart',unlockAudio);
 
 function playBgm(key) {
   if (!audioCtx || key === playingKey) return;
-  if (playingSrc) { playingSrc.stop(); playingSrc.disconnect(); playingSrc = null; }
   playingKey = key;
-  if (!key || !audioBufs[key]) return;
-  const src = audioCtx.createBufferSource();
-  src.buffer = audioBufs[key];
-  src.loop   = true;
-  src.connect(masterGain);
-  src.start(0);
-  playingSrc = src;
+  if (key === 'freeway2') {
+    _eng1.pause();
+    _eng2.play().catch(console.error);
+  } else {
+    _eng2.pause();
+    _eng1.play().catch(console.error);
+  }
 }
 
 function updateCruiseBgm() {
@@ -825,9 +812,9 @@ ytVolSlider.addEventListener('input', () => {
 loadPlaylist().then(() => initYTPlayer()).catch(console.error);
 
 startBtn.addEventListener('click', () => {
+  initAudio();
   overlay.classList.add('hidden');
   document.body.requestPointerLock();
-  initAudio().catch(console.error);
   gameStartTime = performance.now();
 });
 
