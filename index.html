@@ -429,15 +429,16 @@ async function initAudio() {
   masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.7;
   masterGain.connect(audioCtx.destination);
-  const urls = {
-    freeway1: 'music/drive_on_freeway1.mp3',
-    freeway2: 'music/drive_on_freeway2.mp3',
-  };
-  await Promise.all(Object.entries(urls).map(async ([k, url]) => {
-    const ab = await (await fetch(url)).arrayBuffer();
-    audioBufs[k] = await audioCtx.decodeAudioData(ab);
-  }));
+  // freeway1 を先に読み込んで即再生
+  const ab1 = await (await fetch('music/drive_on_freeway1.mp3')).arrayBuffer();
+  audioBufs['freeway1'] = await audioCtx.decodeAudioData(ab1);
   playBgm('freeway1');
+  // freeway2 はバックグラウンドで読み込む
+  fetch('music/drive_on_freeway2.mp3')
+    .then(r => r.arrayBuffer())
+    .then(ab => audioCtx.decodeAudioData(ab))
+    .then(buf => { audioBufs['freeway2'] = buf; })
+    .catch(console.error);
 }
 
 function unlockAudio() {
