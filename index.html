@@ -423,33 +423,24 @@ const audioBufs  = {};
 let playingSrc   = null;
 let playingKey   = null;
 
+// ページ読み込み時点でフェッチだけ先行（AudioContextはユーザー操作後に作成）
+const _f1Fetch = fetch('music/drive_on_freeway1.mp3').then(r => r.arrayBuffer());
+const _f2Fetch = fetch('music/drive_on_freeway2.mp3').then(r => r.arrayBuffer());
+
 async function initAudio() {
   if (audioCtx) return;
   audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
   masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.7;
   masterGain.connect(audioCtx.destination);
-  // freeway1 を先に読み込んで即再生
-  const ab1 = await (await fetch('music/drive_on_freeway1.mp3')).arrayBuffer();
-  audioBufs['freeway1'] = await audioCtx.decodeAudioData(ab1);
+  // フェッチ済みバッファをデコードして即再生
+  audioBufs['freeway1'] = await audioCtx.decodeAudioData(await _f1Fetch);
   playBgm('freeway1');
-  // freeway2 はバックグラウンドで読み込む
-  fetch('music/drive_on_freeway2.mp3')
-    .then(r => r.arrayBuffer())
-    .then(ab => audioCtx.decodeAudioData(ab))
+  // freeway2 はバックグラウンドでデコード
+  _f2Fetch.then(ab => audioCtx.decodeAudioData(ab))
     .then(buf => { audioBufs['freeway2'] = buf; })
     .catch(console.error);
 }
-
-function unlockAudio() {
-  initAudio().catch(console.error);
-  document.removeEventListener('click',     unlockAudio);
-  document.removeEventListener('keydown',   unlockAudio);
-  document.removeEventListener('touchstart',unlockAudio);
-}
-document.addEventListener('click',     unlockAudio);
-document.addEventListener('keydown',   unlockAudio);
-document.addEventListener('touchstart',unlockAudio);
 
 function playBgm(key) {
   if (!audioCtx || key === playingKey) return;
@@ -825,9 +816,9 @@ ytVolSlider.addEventListener('input', () => {
 loadPlaylist().then(() => initYTPlayer()).catch(console.error);
 
 startBtn.addEventListener('click', () => {
+  initAudio().catch(console.error);
   overlay.classList.add('hidden');
   document.body.requestPointerLock();
-  initAudio().catch(console.error);
   gameStartTime = performance.now();
 });
 
