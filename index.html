@@ -416,39 +416,40 @@ function toggleYt() {
   ytPlayer.getPlayerState() === 1 ? ytPlayer.pauseVideo() : ytPlayer.playVideo();
 }
 
-// ── BGM (HTMLAudioElement ストリーミング再生) ─────────────────────────────
+// ── BGM (ギャップレスループ) ──────────────────────────────────────────────
 let audioCtx     = null;
 let masterGain   = null;
+const audioBufs  = {};
+let playingSrc   = null;
 let playingKey   = null;
 
-const _eng1 = new Audio('music/drive_on_freeway1.mp3'); _eng1.loop = true;
-const _eng2 = new Audio('music/drive_on_freeway2.mp3'); _eng2.loop = true;
-let _eng1Src = null, _eng2Src = null;
+// ページ読み込み時にプリフェッチ開始（sa08より先に済ませる）
+const _f1Fetch = fetch('music/drive_on_freeway1.mp3').then(r => r.arrayBuffer());
+const _f2Fetch = fetch('music/drive_on_freeway2.mp3').then(r => r.arrayBuffer());
 
-function initAudio() {
+async function initAudio() {
   if (audioCtx) return;
   audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
   masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.7;
   masterGain.connect(audioCtx.destination);
-  _eng1Src = audioCtx.createMediaElementSource(_eng1);
-  _eng2Src = audioCtx.createMediaElementSource(_eng2);
-  _eng1Src.connect(masterGain);
-  _eng2Src.connect(masterGain);
-  _eng1.play().catch(console.error);
-  playingKey = 'freeway1';
+  const [ab1, ab2] = await Promise.all([_f1Fetch, _f2Fetch]);
+  audioBufs['freeway1'] = await audioCtx.decodeAudioData(ab1);
+  audioBufs['freeway2'] = await audioCtx.decodeAudioData(ab2);
+  playBgm('freeway1');
 }
 
 function playBgm(key) {
   if (!audioCtx || key === playingKey) return;
+  if (playingSrc) { playingSrc.stop(); playingSrc.disconnect(); playingSrc = null; }
   playingKey = key;
-  if (key === 'freeway2') {
-    _eng1.pause();
-    _eng2.play().catch(console.error);
-  } else {
-    _eng2.pause();
-    _eng1.play().catch(console.error);
-  }
+  if (!audioBufs[key]) return;
+  const src = audioCtx.createBufferSource();
+  src.buffer = audioBufs[key];
+  src.loop   = true;
+  src.connect(masterGain);
+  src.start(0);
+  playingSrc = src;
 }
 
 function updateCruiseBgm() {
@@ -757,9 +758,12 @@ new GLTFLoader().load('sa01.glb?v=' + Date.now(), gltf => {
   loadSpecialModel('sa07.glb', _spx, _spy, _spz).then(r => {
     if (r) { model07 = r.main; model07Copy = r.copy; console.log('[sa07] loaded'); }
   });
-  loadSpecialModel('sa08.glb', _spx, _spy, _spz).then(r => {
-    if (r) { model08 = r.main; model08Copy = r.copy; console.log('[sa08] loaded'); }
-  });
+  // sa08はゲーム開始後に裏読み（音声と競合しないよう遅延）
+  startBtn.addEventListener('click', () => {
+    loadSpecialModel('sa08.glb', _spx, _spy, _spz).then(r => {
+      if (r) { model08 = r.main; model08Copy = r.copy; console.log('[sa08] loaded'); }
+    });
+  }, { once: true });
 
   EYE_HEIGHT = 0.25;
   camera.position.set(0, 0.27, -5);
