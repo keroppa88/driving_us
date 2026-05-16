@@ -563,7 +563,15 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyA' && !e.repeat) {
     musicLabelEnabled = !musicLabelEnabled;
     document.getElementById('coords').style.display = musicLabelEnabled ? 'block' : 'none';
-    if (!musicLabelEnabled) connectingEl.style.display = 'none';
+    if (!musicLabelEnabled) {
+      connectingEl.style.display = 'none';
+    } else {
+      const cur = playlist[playlistIdx];
+      if (cur && cur.type !== 'label') {
+        connectingEl.style.display = 'block';
+        connectingEl.textContent = trackLabel(cur);
+      }
+    }
   }
   if (e.code === 'ArrowUp'    && !e.repeat) { selectTrack(-1); e.preventDefault(); }
   if (e.code === 'ArrowDown'  && !e.repeat) { selectTrack(+1); e.preventDefault(); }
@@ -872,7 +880,15 @@ function updateMovement() {
     if (btnA && !gpBtnAPrev) {
       musicLabelEnabled = !musicLabelEnabled;
       document.getElementById('coords').style.display = musicLabelEnabled ? 'block' : 'none';
-      if (!musicLabelEnabled) connectingEl.style.display = 'none';
+      if (!musicLabelEnabled) {
+        connectingEl.style.display = 'none';
+      } else {
+        const cur = playlist[playlistIdx];
+        if (cur && cur.type !== 'label') {
+          connectingEl.style.display = 'block';
+          connectingEl.textContent = trackLabel(cur);
+        }
+      }
     }
     if (btnSelect && !gpSelectPrev && locked) document.exitPointerLock();
     gpDpadUpPrev    = dpadUp;
