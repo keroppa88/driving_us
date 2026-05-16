@@ -418,46 +418,16 @@ function toggleYt() {
 }
 
 // ── BGM (ギャップレスループ) ──────────────────────────────────────────────
-let audioCtx     = null;
-let masterGain   = null;
+const audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
+const masterGain = audioCtx.createGain();
+masterGain.gain.value = 0.7;
+masterGain.connect(audioCtx.destination);
 const audioBufs  = {};
 let playingSrc   = null;
 let playingKey   = null;
 
-// ページ読み込み時にプリフェッチ開始（sa08より先に済ませる）
-const _f1Fetch = fetch('music/drive_on_freeway1.mp3').then(r => r.arrayBuffer());
-const _f2Fetch = fetch('music/drive_on_freeway2.mp3').then(r => r.arrayBuffer());
-Promise.all([_f1Fetch, _f2Fetch]).then(() => {
-  document.getElementById('audio-loading').style.display = 'none';
-  const btn = document.getElementById('start-btn');
-  btn.disabled = false;
-  btn.style.opacity = '';
-  btn.style.cursor  = '';
-}).catch(e => {
-  console.error(e);
-  const lbl = document.getElementById('audio-loading');
-  lbl.textContent = '音声の読み込みに失敗しました。再読み込みしてください。';
-  lbl.style.color = '#f88';
-  const btn = document.getElementById('start-btn');
-  btn.disabled = false;
-  btn.style.opacity = '';
-  btn.style.cursor  = '';
-});
-
-async function initAudio() {
-  if (audioCtx) return;
-  audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.7;
-  masterGain.connect(audioCtx.destination);
-  const [ab1, ab2] = await Promise.all([_f1Fetch, _f2Fetch]);
-  audioBufs['freeway1'] = await audioCtx.decodeAudioData(ab1);
-  audioBufs['freeway2'] = await audioCtx.decodeAudioData(ab2);
-  playBgm('freeway1');
-}
-
 function playBgm(key) {
-  if (!audioCtx || key === playingKey) return;
+  if (key === playingKey) return;
   if (playingSrc) { playingSrc.stop(); playingSrc.disconnect(); playingSrc = null; }
   playingKey = key;
   if (!audioBufs[key]) return;
@@ -468,6 +438,30 @@ function playBgm(key) {
   src.start(0);
   playingSrc = src;
 }
+
+// ページ読み込み時にfetch→decode→即再生。完了したらSTARTボタンを有効化。
+(async () => {
+  const unlockBtn = () => {
+    document.getElementById('audio-loading').style.display = 'none';
+    const btn = document.getElementById('start-btn');
+    btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = '';
+  };
+  try {
+    const ab1 = await fetch('music/drive_on_freeway1.mp3').then(r => r.arrayBuffer());
+    audioBufs['freeway1'] = await audioCtx.decodeAudioData(ab1);
+    playBgm('freeway1');   // 自動再生（ブロックされても resume で即鳴る）
+    unlockBtn();
+    // freeway2 は裏で続けて読む
+    const ab2 = await fetch('music/drive_on_freeway2.mp3').then(r => r.arrayBuffer());
+    audioBufs['freeway2'] = await audioCtx.decodeAudioData(ab2);
+  } catch(e) {
+    console.error(e);
+    const lbl = document.getElementById('audio-loading');
+    lbl.textContent = '音声の読み込みに失敗しました。再読み込みしてください。';
+    lbl.style.color = '#f88';
+    unlockBtn();
+  }
+})();
 
 function updateCruiseBgm() {
   playBgm(cruiseSpeed > 14 ? 'freeway2' : 'freeway1');
@@ -833,7 +827,7 @@ ytVolSlider.addEventListener('input', () => {
 loadPlaylist().then(() => initYTPlayer()).catch(console.error);
 
 startBtn.addEventListener('click', () => {
-  initAudio();
+  audioCtx.resume();
   overlay.classList.add('hidden');
   document.body.requestPointerLock();
   gameStartTime = performance.now();
