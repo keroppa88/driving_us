@@ -2,13 +2,13 @@
 https://simul.drdi.st.nhk/live/3/joined/master.m3u8　「Radio,日本/NHK AM」
 https://simul.drdi.st.nhk/live/5/joined/audio/media.m3u8　「Radio,日本/NHK FM」
 https://bigrradio.cdnstream1.com/5182_128?listenerid=ea4ef9d7-dc2d-496b-9f18-5bbd5ca7923a&amp;cb=974096.mp3 「Radio,USA/Big R Radio-70s FM」
-https://streams.cbnradio.com/news-128K?app=onlineradiobox 「Radio,USAUSA/CBN News」
+https://streams.cbnradio.com/news-128K?app=onlineradiobox 「Radio,USA/CBN News」
 https://www.ophanim.net:8444/s/9780 「Radio,USA/Side Street Radio」
 https://stream1.rcast.net/72991 「Radio,USA/San Francisco's 70s HITS」
 https://s4.radio.co/s44e9ca299/listen 「Radio,USA/Country Joy」
 https://streaming.live365.com/2158_128.mp3 「Radio,USA/Houston Blues Radio」
 https://streaming.live365.com/b75154_128mp3 「Radio,USA/Smooth Jazz 247」
-https://streams.cbnradio.com//southern-gospel-128K 「Radio,USA/USA,CBN Southern Gospel」
+https://streams.cbnradio.com//southern-gospel-128K 「Radio,USA/CBN Southern Gospel」
 https://online.hitfm.ua/HitFM 「Radio,Ukraine/Хіт FM96.4」
 Music
 https://www.youtube.com/watch?v=Uw5OLnN7UvM「Bill Withers,Just The Two Of Us」
