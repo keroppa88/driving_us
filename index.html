@@ -541,7 +541,11 @@ const dbg       = document.getElementById('debug');
 document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === document.body;
   crosshair.classList.toggle('show', locked);
-  if (!locked) overlay.classList.remove('hidden');
+  if (locked) {
+    overlay.classList.add('hidden');
+  } else {
+    overlay.classList.remove('hidden');
+  }
 });
 document.addEventListener('mousemove', e => {
   if (!locked) return;
@@ -836,9 +840,9 @@ loadPlaylist().then(() => initYTPlayer()).catch(console.error);
 
 startBtn.addEventListener('click', () => {
   audioCtx.resume();
-  overlay.classList.add('hidden');
-  document.body.requestPointerLock();
   gameStartTime = performance.now();
+  const p = document.body.requestPointerLock();
+  if (p && typeof p.catch === 'function') p.catch(() => {});
 });
 
 // ── 移動ループ ────────────────────────────────────────────────────────────
