@@ -943,7 +943,8 @@ function updateMovement() {
 
 // ── 遠景山並み（3重シリンダー）────────────────────────────────────────────
 function buildMountainRings() {
-  function makeMtnTex(seed, color, rangeScale = 1.0) {
+  const CAM_Y = 0.27;
+  function makeMtnTex(seed, color, rangeScale = 1.0, horizFrac = 0.66) {
     const W = 2048, H = 512;
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
@@ -962,6 +963,8 @@ function buildMountainRings() {
     }
     const mn = Math.min(...profile), mx = Math.max(...profile);
     ctx.fillStyle = color;
+    // 地平線より下を塗りつぶして谷部分の透明帯を除去
+    ctx.fillRect(0, H * horizFrac, W, H * (1 - horizFrac));
     ctx.beginPath();
     ctx.moveTo(0, H);
     for (let x = 0; x <= W; x++) {
@@ -983,7 +986,7 @@ function buildMountainRings() {
   const rings = [];
   for (const L of layers) {
     const mat = new THREE.MeshBasicMaterial({
-      map: makeMtnTex(L.seed, L.color, L.rs),
+      map: makeMtnTex(L.seed, L.color, L.rs, (L.cy + L.h / 2 - CAM_Y) / L.h),
       side: THREE.BackSide,
       transparent: true,
       alphaTest: 0.05,
