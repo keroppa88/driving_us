@@ -433,7 +433,16 @@ Promise.all([_f1Fetch, _f2Fetch]).then(() => {
   btn.disabled = false;
   btn.style.opacity = '';
   btn.style.cursor  = '';
-}).catch(console.error);
+}).catch(e => {
+  console.error(e);
+  const lbl = document.getElementById('audio-loading');
+  lbl.textContent = '音声の読み込みに失敗しました。再読み込みしてください。';
+  lbl.style.color = '#f88';
+  const btn = document.getElementById('start-btn');
+  btn.disabled = false;
+  btn.style.opacity = '';
+  btn.style.cursor  = '';
+});
 
 async function initAudio() {
   if (audioCtx) return;
