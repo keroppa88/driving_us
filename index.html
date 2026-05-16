@@ -424,6 +424,7 @@ let playingSrc   = null;
 let playingKey   = null;
 
 async function initAudio() {
+  if (audioCtx) return;
   audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
   masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.7;
@@ -436,7 +437,18 @@ async function initAudio() {
     const ab = await (await fetch(url)).arrayBuffer();
     audioBufs[k] = await audioCtx.decodeAudioData(ab);
   }));
+  playBgm('freeway1');
 }
+
+function unlockAudio() {
+  initAudio().catch(console.error);
+  document.removeEventListener('click',     unlockAudio);
+  document.removeEventListener('keydown',   unlockAudio);
+  document.removeEventListener('touchstart',unlockAudio);
+}
+document.addEventListener('click',     unlockAudio);
+document.addEventListener('keydown',   unlockAudio);
+document.addEventListener('touchstart',unlockAudio);
 
 function playBgm(key) {
   if (!audioCtx || key === playingKey) return;
