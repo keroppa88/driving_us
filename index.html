@@ -314,12 +314,12 @@ function selectTrack(delta) {
   playlistIdx = ((playlistIdx + delta) % playlist.length + playlist.length) % playlist.length;
   const entry = playlist[playlistIdx];
   isBrowsing = entry.type !== 'label';
-  if (musicLabelEnabled) {
-    connectingEl.style.display = 'block';
-    connectingEl.textContent   = entry.type === 'label'
-      ? `── ${entry.name} ──`
-      : trackLabel(entry);
-  }
+  // 非表示中でも上下操作で復活
+  document.getElementById('coords').style.display = 'block';
+  connectingEl.style.display = 'block';
+  connectingEl.textContent = entry.type === 'label'
+    ? `── ${entry.name} ──`
+    : trackLabel(entry);
 }
 
 function confirmTrack() {
@@ -328,10 +328,10 @@ function confirmTrack() {
   const entry = playlist[playlistIdx];
   decisionSE.currentTime = 0;
   decisionSE.play().catch(() => {});
-  if (musicLabelEnabled) {
-    connectingEl.style.display = 'block';
-    connectingEl.textContent = `${trackLabel(entry)}　接続中・・・`;
-  }
+  // 決定時は非表示中でも表示
+  document.getElementById('coords').style.display = 'block';
+  connectingEl.style.display = 'block';
+  connectingEl.textContent = `${trackLabel(entry)}　接続中・・・`;
   if (entry.color) setSkyFromColor(entry.color, !!entry.solid);
   setSkyHorizBand(entry.horiz);
   rainActive = !!entry.rain;
@@ -383,7 +383,7 @@ async function initYTPlayer() {
           onReady: e => { ytReady = true; console.log('[YT] player ready'); resolve(e.target); },
           onStateChange: e => {
             if (e.data === 1) {
-              connectingEl.style.display = 'none';
+              connectingEl.textContent = trackLabel(playlist[playlistIdx]);
               isBrowsing = false;
               applyVolAdj();
             }
@@ -1046,7 +1046,7 @@ function stopRadio() {
 }
 
 radioAudio.addEventListener('playing', () => {
-  connectingEl.style.display = 'none';
+  connectingEl.textContent = trackLabel(playlist[playlistIdx]);
 });
 </script>
 </body>
