@@ -963,8 +963,6 @@ function buildMountainRings() {
     }
     const mn = Math.min(...profile), mx = Math.max(...profile);
     ctx.fillStyle = color;
-    // 山頂直下から下を全て塗りつぶし（透明帯による隙間を除去）
-    ctx.fillRect(0, H * 0.59, W, H * 0.41);
     ctx.beginPath();
     ctx.moveTo(0, H);
     for (let x = 0; x <= W; x++) {
