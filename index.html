@@ -638,14 +638,16 @@ function addRocks() {
 
 // ── エリア外砂漠地面 ──────────────────────────────────────────────────────
 function addExtendedDesert() {
-  const geo = new THREE.PlaneGeometry(500, 700);
+  const geo = new THREE.PlaneGeometry(1200, 1200);
   const mat = new THREE.MeshLambertMaterial({ color: 0xf0e3b9 });
   const plane = new THREE.Mesh(geo, mat);
   plane.rotation.x = -Math.PI / 2;
   plane.position.set(0, -0.05, -116);
   plane.frustumCulled = false;
   scene.add(plane);
+  return plane;
 }
+const extDesertPlane = addExtendedDesert();
 
 // ── 特殊モデル ロード・切替 ────────────────────────────────────────────────
 function loadSpecialModel(filename, px, py, pz) {
@@ -757,7 +759,6 @@ new GLTFLoader().load('sa01.glb?v=' + Date.now(), gltf => {
   model.updateMatrixWorld(true);
 
   addRocks();
-  addExtendedDesert();
 
   // シームレスループ用：GLTFモデルをLOOP_LENGTH先に複製（視覚のみ）
   const modelCopy = model.clone();
@@ -1013,6 +1014,7 @@ function animate() {
     ring.position.x = camera.position.x;
     ring.position.z = camera.position.z;
   }
+  extDesertPlane.position.x = camera.position.x;
   // 空グラデーション遷移
   const sp = 0.025;
   skyUniforms.topColor.value.lerp(skyTopTarget, sp);
