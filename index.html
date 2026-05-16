@@ -102,7 +102,7 @@
       <span id="engine-vol-lbl">70%</span>
     </div>
     <div class="vol-row">
-      <label>music音</label>
+      <label>Music</label>
       <input type="range" id="yt-vol" min="0" max="100" value="70">
       <span id="yt-vol-lbl">70%</span>
     </div>
@@ -247,6 +247,7 @@ scene.add(sun);
 let ytPlayer       = null;
 let ytReady        = false;
 let currentVolAdj  = 1.0; // 音量補正係数（例: 0.8 / 1.1）
+let baseVol        = 70;  // 補正前のスライダー基準値
 let gpDpadUpPrev    = false;
 let gpDpadDownPrev  = false;
 let gpDpadLeftPrev  = false;
@@ -334,7 +335,9 @@ function confirmTrack() {
   setSkyHorizBand(entry.horiz);
   rainActive = !!entry.rain;
   starActive = !!entry.star;
+  baseVol = parseInt(ytVolSlider.value);
   currentVolAdj = entry.volAdj ?? 1.0;
+  applyVolAdj();
   if (nowPlayingEl) nowPlayingEl.textContent = `▶  ${trackLabel(entry)}`;
 
   if (entry.type === 'radio') {
@@ -343,9 +346,16 @@ function confirmTrack() {
   } else {
     stopRadio();
     if (!ytReady || !ytPlayer) return;
-    ytPlayer.setVolume(Math.min(100, Math.max(0, Math.round(parseInt(ytVolSlider.value) * currentVolAdj))));
     ytPlayer.loadVideoById(entry.id);
   }
+}
+
+function applyVolAdj() {
+  const effVol = Math.min(100, Math.max(0, Math.round(baseVol * currentVolAdj)));
+  ytVolSlider.value = effVol;
+  ytVolLbl.textContent = effVol + '%';
+  if (ytReady && ytPlayer) ytPlayer.setVolume(effVol);
+  radioAudio.volume = effVol / 100;
 }
 
 function loadYTApi() {
@@ -374,11 +384,13 @@ async function initYTPlayer() {
             if (e.data === 1) {
               connectingEl.style.display = 'none';
               isBrowsing = false;
-              ytPlayer.setVolume(Math.min(100, Math.max(0, Math.round(parseInt(ytVolSlider.value) * currentVolAdj))));
+              applyVolAdj();
             }
             if (e.data === 0) { // 曲終了 → 音量リセット
               currentVolAdj = 1.0;
-              ytPlayer.setVolume(parseInt(ytVolSlider.value));
+              ytVolSlider.value = baseVol;
+              ytVolLbl.textContent = baseVol + '%';
+              ytPlayer.setVolume(baseVol);
             }
           },
           onError: e => { console.error('[YT] error:', e.data); reject(e.data); },
@@ -792,10 +804,8 @@ engineVolSlider.addEventListener('input', () => {
 const ytVolSlider = document.getElementById('yt-vol');
 const ytVolLbl    = document.getElementById('yt-vol-lbl');
 ytVolSlider.addEventListener('input', () => {
-  const v = parseInt(ytVolSlider.value);
-  if (ytPlayer) ytPlayer.setVolume(Math.min(100, Math.max(0, Math.round(v * currentVolAdj))));
-  radioAudio.volume = Math.min(1, Math.max(0, v / 100 * currentVolAdj));
-  ytVolLbl.textContent = v + '%';
+  baseVol = parseInt(ytVolSlider.value);
+  applyVolAdj();
 });
 
 // ページ読み込み時点でYouTube準備を開始（ユーザー操作不要）
@@ -1000,7 +1010,7 @@ let radioActive  = false;
 function playRadio(url) {
   if (radioHls) { radioHls.destroy(); radioHls = null; }
   radioAudio.pause();
-  radioAudio.volume = Math.min(1, parseInt(ytVolSlider.value) / 100 * currentVolAdj);
+  radioAudio.volume = Math.min(1, baseVol / 100 * currentVolAdj);
   if (typeof Hls !== 'undefined' && Hls.isSupported() && /\.m3u8/i.test(url)) {
     radioHls = new Hls();
     radioHls.loadSource(url);
