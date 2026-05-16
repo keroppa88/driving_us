@@ -132,4 +132,41 @@
     - radioAudio playing イベント：同上
 
 
+■ 9. Aボタンで再表示したとき現在曲名も表示（PR #12）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  【変更前】
+    Aボタンを押して非表示→再度Aボタンでスピードは復活するが
+    再生中の曲名は出なかった。
+
+  【変更後】
+    Aボタンで再表示する際、現在再生中のトラック名もあわせて表示。
+
+  【実装内容】
+    - KeyA ハンドラーの「enabled → true」ブランチで
+      playlist[playlistIdx] の曲名を connectingEl に設定して表示。
+
+
+■ 10. ESC後の再スタートでフリーズする問題を修正（PR #13）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  【症状】
+    ゲーム中にESCを押してタイトル画面に戻り、DRIVE STARTを押すと
+    フリーズ（2〜3回で確実に再現）。
+
+  【原因】
+    startBtn クリック時に即座に overlay.classList.add('hidden') を
+    呼んでいたため、requestPointerLock() が失敗した場合でも
+    オーバーレイが消えたまま（locked=false でゲームループが動かない）
+    → フリーズに見える状態になっていた。
+
+  【修正】
+    - pointerlockchange ハンドラーでオーバーレイの表示/非表示を制御：
+        locked=true  → overlay.classList.add('hidden')
+        locked=false → overlay.classList.remove('hidden')
+    - startBtn クリックハンドラーは audioCtx.resume() と
+      gameStartTime の設定、requestPointerLock() のみ実行。
+      overlay操作は行わない。
+
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
