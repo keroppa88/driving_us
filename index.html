@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>Driving in the USA</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #000; }
+
+  #loading {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: #111; z-index: 20; color: #ccc; font-family: sans-serif;
+  }
+  #pbar { width: 200px; height: 3px; background: #333; margin-top: 12px; }
+  #pfill { height: 100%; width: 0%; background: #aaa; }
+
+  #overlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.7); z-index: 10; color: #fff; font-family: sans-serif;
+  }
+  #overlay.hidden { display: none; }
+  #overlay h1 { font-size: 2rem; margin-bottom: 0.5em; }
+  #overlay p { color: #aaa; font-size: 0.9rem; margin: 0.2em 0; }
+  .vol-section { margin-top: 1.2em; width: 280px; }
+  .vol-section h2 { font-size: 0.8rem; color: #888; margin: 0 0 0.5em; letter-spacing: 0.05em; }
+  .vol-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.5em; }
+  .vol-row label { color: #bbb; font-size: 0.82rem; width: 90px; text-align: right; white-space: nowrap; }
+  .vol-row input[type=range] { flex: 1; accent-color: #aaa; cursor: pointer; }
+  .vol-row span { color: #ccc; font-size: 0.82rem; min-width: 3em; }
+  #now-playing { margin-top: 0.6em; font-size: 0.75rem; color: #888; min-height: 1.2em; }
+  #start-btn {
+    margin-top: 1.2em; padding: 0.6em 2em;
+    background: #555; color: #fff; border: none;
+    border-radius: 4px; font-size: 1rem; cursor: pointer;
+  }
+  #start-btn:hover { background: #777; }
+
+  #crosshair {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px; height: 16px;
+    pointer-events: none; z-index: 5; display: none;
+  }
+  #crosshair.show { display: block; }
+  #crosshair::before, #crosshair::after {
+    content: ''; position: absolute; background: rgba(255,255,255,0.8);
+  }
+  #crosshair::before { width: 100%; height: 1px; top: 50%; left: 0; transform: translateY(-50%); }
+  #crosshair::after  { width: 1px; height: 100%; left: 50%; top: 0; transform: translateX(-50%); }
+
+#connecting {
+    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+    color: #fff; font-family: sans-serif; font-size: 0.85rem;
+    pointer-events: none; z-index: 5; display: none;
+    white-space: nowrap;
+  }
+#coords {
+    position: fixed; top: 10px; left: 10px;
+    color: #fff; font-family: monospace; font-size: 0.8rem;
+    pointer-events: none; z-index: 5;
+    text-shadow: 0 0 4px #000;
+  }
+  .controls { margin: 0.8em 0; }
+  .ctrl-row {
+    display: flex; align-items: baseline;
+    margin-bottom: 0.22em;
+    font-size: 0.84rem; font-family: monospace; color: #ccc;
+  }
+  .ctrl-key  { display: inline-block; min-width: 4.2em; color: #e0e0e0; }
+  .ctrl-key::after { content: '/'; }
+  .ctrl-sep  { display: none; }
+  .ctrl-desc { color: #aaa; margin-left: 0.3em; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div>ロード中...</div>
+  <div id="pbar"><div id="pfill"></div></div>
+</div>
+
+<div id="overlay">
+  <h1>Driving in the USA</h1>
+  <div class="controls">
+    <div class="ctrl-row"><span class="ctrl-key">マウス</span><span class="ctrl-sep">/</span><span class="ctrl-desc">視点移動、進行方向</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">Space</span><span class="ctrl-sep">/</span><span class="ctrl-desc">アクセル（離すと速度維持）</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">B</span><span class="ctrl-sep">/</span><span class="ctrl-desc">減速（離すと速度維持）</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">↑↓</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music、選択</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">←→</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music、巻き戻し・早送り</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">Y</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music、再生・停止</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">A</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music表記、表示・非表示</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">ESC</span><span class="ctrl-sep">/</span><span class="ctrl-desc">ゲーム中断、タイトル・操作説明画面</span></div>
+  </div>
+
+  <div class="vol-section">
+    <h2>── 音量設定 ──</h2>
+    <div class="vol-row">
+      <label>エンジン音</label>
+      <input type="range" id="engine-vol" min="0" max="100" value="70">
+      <span id="engine-vol-lbl">70%</span>
+    </div>
+    <div class="vol-row">
+      <label>music音</label>
+      <input type="range" id="yt-vol" min="0" max="100" value="70">
+      <span id="yt-vol-lbl">70%</span>
+    </div>
+    <div id="now-playing"></div>
+  </div>
+
+  <button id="start-btn">DRIVE START</button>
+</div>
+
+<!-- YouTube プレイヤー（画面外） -->
+<div style="position:fixed;top:-400px;left:-400px;width:400px;height:300px;pointer-events:none">
+  <div id="yt-container"></div>
+</div>
+
+<div id="crosshair"></div>
+<div id="connecting">接続中・・・</div>
+<div id="coords"></div>
+
+<!-- hls.js (ラジオストリーム用) -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// ── 基本設定 ──────────────────────────────────────────────────────────────
+let EYE_HEIGHT = 1.5;
+const WALK_SPEED = 5;
+const RUN_SPEED  = 15;
+const MAX_STEP   = 0.6;
+const PLAYER_R   = 0.3;
+
+const PLAY_X_MIN = -21.1, PLAY_X_MAX = 21.1;
+const PLAY_Z_MIN = -233,  PLAY_Z_MAX = 1;
+
+const MAX_CRUISE = 22;
+const ACCEL_RATE = 5;
+const DECEL_RATE = 10;
+let cruiseSpeed  = 0;
+
+// ── 特殊モデル制御 ─────────────────────────────────────────────────────────
+let saModelMain = null, saModelCopy = null;
+let model02 = null, model02Copy = null;
+let model03 = null, model03Copy = null;
+let model04 = null, model04Copy = null;
+let model05 = null, model05Copy = null;
+let model06 = null, model06Copy = null;
+let model07 = null, model07Copy = null;
+let model08 = null, model08Copy = null;
+let gameStartTime = null;
+let loopCount = 0;
+const LOOP_SEQUENCE = [
+  // 一時テスト: 1 8
+  'sa01', 'sa08',
+];
+
+// ── レンダラー ────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+// ── シーン ────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = null;
+scene.fog = new THREE.FogExp2(0xc8daf0, 0.0075);
+
+// ── 空グラデーションシェーダー ────────────────────────────────────────────
+const skyUniforms = {
+  topColor:         { value: new THREE.Color(0x4a6fa0) },
+  horizonColor:     { value: new THREE.Color(0xc8daf0) },
+  horizonBandColor: { value: new THREE.Color(0xc8daf0) },
+};
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: skyUniforms,
+  vertexShader: `
+    varying vec3 vPos;
+    void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+  `,
+  fragmentShader: `
+    uniform vec3 topColor;
+    uniform vec3 horizonColor;
+    uniform vec3 horizonBandColor;
+    varying vec3 vPos;
+    void main(){
+      float h = clamp(normalize(vPos).y, 0.0, 1.0);
+      float bandBlend = smoothstep(0.0, 0.11, h);
+      vec3 lower = mix(horizonBandColor, horizonColor, bandBlend);
+      gl_FragColor = vec4(mix(lower, topColor, pow(h, 0.6)), 1.0);
+    }
+  `,
+  side: THREE.BackSide,
+  depthWrite: false,
+  depthTest: false,
+});
+const skyMesh = new THREE.Mesh(new THREE.SphereGeometry(490, 32, 15), skyMat);
+skyMesh.renderOrder = -1;
+skyMesh.frustumCulled = false;
+scene.add(skyMesh);
+
+let skyTopTarget       = new THREE.Color(0x4a6fa0);
+let skyHorizTarget     = new THREE.Color(0xc8daf0);
+let skyHorizBandTarget = new THREE.Color(0xc8daf0);
+
+function setSkyFromColor(hex, solid = false) {
+  const base = new THREE.Color(hex);
+  skyTopTarget.copy(base).multiplyScalar(0.42);
+  if (solid) {
+    skyHorizTarget.copy(skyTopTarget);
+  } else {
+    skyHorizTarget.copy(base).lerp(new THREE.Color(0xddd8c8), 0.52);
+  }
+  skyHorizBandTarget.copy(skyHorizTarget);
+}
+function setSkyHorizBand(hex) {
+  if (hex) skyHorizBandTarget.set(hex);
+  else skyHorizBandTarget.copy(skyHorizTarget);
+}
+setSkyFromColor('#9bbae8');
+
+// ── カメラ ────────────────────────────────────────────────────────────────
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.01, 500);
+camera.rotation.order = 'YXZ';
+
+// ── ライト ────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+sun.position.set(50, 100, 50);
+scene.add(sun);
+
+// ── YouTube プレイヤー ────────────────────────────────────────────────────
+let ytPlayer       = null;
+let ytReady        = false;
+let currentVolAdj  = 1.0; // 音量補正係数（例: 0.8 / 1.1）
+let gpDpadUpPrev    = false;
+let gpDpadDownPrev  = false;
+let gpDpadLeftPrev  = false;
+let gpDpadRightPrev = false;
+let gpBtnYPrev      = false;
+let gpBtnAPrev      = false;
+let gpBtnBPrev      = false;
+let gpSelectPrev    = false;
+
+// プレイリスト
+let playlist      = [{ id: 'Uw5OLnN7UvM', name: '', color: null, rain: false }];
+let playlistIdx   = 0;
+let ytSelectTimer = null;
+let musicLabelEnabled = true;
+let isBrowsing        = false;
+
+async function loadPlaylist() {
+  try {
+    const text = await (await fetch('musiclist.txt')).text();
+    const entries = text.split('\n')
+      .map(l => l.trim()).filter(l => l && !l.startsWith('#'))
+      .map(l => {
+        const urlMatch = l.match(/https?:\/\/[^「\s]+/);
+        if (!urlMatch) return { type: 'label', name: l, id: null };
+        const urlPart = urlMatch[0];
+        const rest    = l.slice(urlMatch.index + urlPart.length).trim();
+        const nameMatch = rest.match(/「([^」]*)」/);
+        const name  = nameMatch ? nameMatch[1] : '';
+        const keywords = rest.replace(/「[^」]*」/, '');
+        const colorMatch = keywords.match(/#[0-9a-fA-F]{6}/);
+        const color = colorMatch ? colorMatch[0] : null;
+        const rain  = /雨/.test(keywords);
+        const star  = /星/.test(keywords);
+        const solid = /単色/.test(keywords);
+        const horizMatch = keywords.match(/地平線(#[0-9a-fA-F]{6})/);
+        const horiz = horizMatch ? horizMatch[1] : null;
+        const volMatch = keywords.match(/音量([+-]\d+)%/);
+        const volAdj = volMatch ? 1 + parseInt(volMatch[1]) / 100 : 1.0;
+        const cleanUrl = urlPart.replace(/&amp;/g, '&');
+        const isYT = /youtube\.com|youtu\.be/.test(cleanUrl);
+        const vid  = isYT ? (cleanUrl.match(/[?&]v=([^&]+)/)?.[1] || cleanUrl) : cleanUrl;
+        return { id: vid, type: isYT ? 'yt' : 'radio', name, color, rain, star, solid, horiz, volAdj };
+      });
+    const valid = entries.filter(Boolean);
+    if (valid.length > 0) { playlist = valid; console.log('[playlist]', valid.length, 'tracks'); }
+  } catch(e) { console.warn('[playlist] musiclist.txt 読み込み失敗、デフォルト使用'); }
+}
+
+const nowPlayingEl  = document.getElementById('now-playing');
+const connectingEl  = document.getElementById('connecting');
+
+const decisionSE = new Audio('music/決定ボタンを押す7.mp3');
+
+function trackLabel(entry) {
+  if (!entry.name) return entry.id;
+  const comma = entry.name.indexOf(',');
+  if (comma === -1) return entry.name;
+  return `${entry.name.slice(0, comma).trim()} - ${entry.name.slice(comma + 1).trim()}`;
+}
+
+function selectTrack(delta) {
+  if (playlist.length === 0) return;
+  playlistIdx = ((playlistIdx + delta) % playlist.length + playlist.length) % playlist.length;
+  const entry = playlist[playlistIdx];
+  isBrowsing = entry.type !== 'label';
+  if (musicLabelEnabled) {
+    connectingEl.style.display = 'block';
+    connectingEl.textContent   = entry.type === 'label'
+      ? `── ${entry.name} ──`
+      : trackLabel(entry);
+  }
+}
+
+function confirmTrack() {
+  if (!isBrowsing) return;
+  isBrowsing = false;
+  const entry = playlist[playlistIdx];
+  decisionSE.currentTime = 0;
+  decisionSE.play().catch(() => {});
+  if (musicLabelEnabled) {
+    connectingEl.style.display = 'block';
+    connectingEl.textContent = `${trackLabel(entry)}　接続中・・・`;
+  }
+  if (entry.color) setSkyFromColor(entry.color, !!entry.solid);
+  setSkyHorizBand(entry.horiz);
+  rainActive = !!entry.rain;
+  starActive = !!entry.star;
+  currentVolAdj = entry.volAdj ?? 1.0;
+  if (nowPlayingEl) nowPlayingEl.textContent = `▶  ${trackLabel(entry)}`;
+
+  if (entry.type === 'radio') {
+    if (ytReady && ytPlayer) ytPlayer.stopVideo();
+    playRadio(entry.id);
+  } else {
+    stopRadio();
+    if (!ytReady || !ytPlayer) return;
+    ytPlayer.setVolume(Math.min(100, Math.max(0, Math.round(parseInt(ytVolSlider.value) * currentVolAdj))));
+    ytPlayer.loadVideoById(entry.id);
+  }
+}
+
+function loadYTApi() {
+  return new Promise(resolve => {
+    if (window.YT?.Player) { resolve(); return; }
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); resolve(); };
+    document.head.appendChild(tag);
+  });
+}
+
+async function initYTPlayer() {
+  try {
+    await loadYTApi();
+    console.log('[YT] API loaded');
+    ytPlayer = await new Promise((resolve, reject) => {
+      new YT.Player('yt-container', {
+        width: 400, height: 300,
+        videoId: 'Uw5OLnN7UvM',
+        playerVars: { autoplay: 0, controls: 0, fs: 0 },
+        events: {
+          onReady: e => { ytReady = true; console.log('[YT] player ready'); resolve(e.target); },
+          onStateChange: e => {
+            if (e.data === 1) { connectingEl.style.display = 'none'; isBrowsing = false; }
+            if (e.data === 0) { // 曲終了 → 音量リセット
+              currentVolAdj = 1.0;
+              ytPlayer.setVolume(parseInt(ytVolSlider.value));
+            }
+          },
+          onError: e => { console.error('[YT] error:', e.data); reject(e.data); },
+        }
+      });
+    });
+  } catch(e) {
+    console.error('[YT] init failed:', e);
+  }
+}
+
+function seekYT(sec) {
+  if (!ytReady || !ytPlayer) return;
+  ytPlayer.seekTo(ytPlayer.getCurrentTime() + sec, true);
+}
+
+function toggleYt() {
+  if (radioActive) {
+    radioAudio.paused ? radioAudio.play().catch(console.error) : radioAudio.pause();
+    return;
+  }
+  if (!ytReady || !ytPlayer) return;
+  ytPlayer.getPlayerState() === 1 ? ytPlayer.pauseVideo() : ytPlayer.playVideo();
+}
+
+// ── BGM (Web Audio API ギャップレスループ) ───────────────────────────────
+let audioCtx     = null;
+let masterGain   = null;
+const audioBufs  = {};
+let playingSrc   = null;
+let playingKey   = null;
+
+async function initAudio() {
+  audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.7;
+  masterGain.connect(audioCtx.destination);
+  const urls = {
+    freeway1: 'music/drive_on_freeway1.mp3',
+    freeway2: 'music/drive_on_freeway2.mp3',
+  };
+  await Promise.all(Object.entries(urls).map(async ([k, url]) => {
+    const ab = await (await fetch(url)).arrayBuffer();
+    audioBufs[k] = await audioCtx.decodeAudioData(ab);
+  }));
+}
+
+function playBgm(key) {
+  if (!audioCtx || key === playingKey) return;
+  if (playingSrc) { playingSrc.stop(); playingSrc.disconnect(); playingSrc = null; }
+  playingKey = key;
+  if (!key || !audioBufs[key]) return;
+  const src = audioCtx.createBufferSource();
+  src.buffer = audioBufs[key];
+  src.loop   = true;
+  src.connect(masterGain);
+  src.start(0);
+  playingSrc = src;
+}
+
+function updateCruiseBgm() {
+  playBgm(cruiseSpeed > 14 ? 'freeway2' : 'freeway1');
+}
+
+
+// ── 雨システム ────────────────────────────────────────────────────────────
+let rainActive = false;
+{
+  const CNT = 5000, SPR = 5, TOP = 10, SPD = 0.3, LEN = 0.2;
+  const pos = new Float32Array(CNT * 6);
+  for (let i = 0; i < CNT; i++) {
+    const x = (Math.random() - 0.5) * SPR * 2;
+    const y = Math.random() * TOP;
+    const z = (Math.random() - 0.5) * SPR * 2;
+    const b = i * 6;
+    pos[b]=x; pos[b+1]=y; pos[b+2]=z; pos[b+3]=x; pos[b+4]=y-LEN; pos[b+5]=z;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  var rainSystem = new THREE.LineSegments(geo,
+    new THREE.LineBasicMaterial({ color: 0xaaccff, transparent: true, opacity: 1.0, depthWrite: false }));
+  rainSystem.visible = false;
+  rainSystem.frustumCulled = false;
+  scene.add(rainSystem);
+
+  window._updateRain = function() {
+    rainSystem.visible = rainActive;
+    if (!rainActive) return;
+    const p = rainSystem.geometry.attributes.position.array;
+    for (let i = 0; i < CNT; i++) {
+      const b = i * 6;
+      p[b+1] -= SPD; p[b+4] -= SPD;
+      if (p[b+4] < -1) {
+        const x = (Math.random()-0.5)*SPR*2, z = (Math.random()-0.5)*SPR*2, y = TOP + Math.random()*4;
+        p[b]=x; p[b+1]=y; p[b+2]=z; p[b+3]=x; p[b+4]=y-LEN; p[b+5]=z;
+      }
+    }
+    rainSystem.geometry.attributes.position.needsUpdate = true;
+    rainSystem.position.set(camera.position.x, 0, camera.position.z);
+  };
+}
+
+// ── 星システム ────────────────────────────────────────────────────────────
+let starActive = false;
+{
+  const CNT = 2000, R = 480;
+  const pos = new Float32Array(CNT * 3);
+  for (let i = 0; i < CNT; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.random() * Math.PI * 0.5; // 上半球のみ
+    pos[i*3]   = R * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = R * Math.cos(phi);
+    pos[i*3+2] = R * Math.sin(phi) * Math.sin(theta);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  var starSystem = new THREE.Points(geo,
+    new THREE.PointsMaterial({ color: 0xffffff, size: 1.1, sizeAttenuation: false, depthWrite: false, fog: false }));
+  starSystem.visible = false;
+  starSystem.frustumCulled = false;
+  scene.add(starSystem);
+
+  window._updateStars = function() {
+    starSystem.visible = starActive;
+    if (starActive) starSystem.position.copy(camera.position);
+  };
+}
+
+
+// ── 入力 ─────────────────────────────────────────────────────────────────
+let yaw = 0, pitch = 0, locked = false;
+const keys      = {};
+const crosshair = document.getElementById('crosshair');
+const dbg       = document.getElementById('debug');
+
+document.addEventListener('pointerlockchange', () => {
+  locked = document.pointerLockElement === document.body;
+  crosshair.classList.toggle('show', locked);
+  if (!locked) overlay.classList.remove('hidden');
+});
+document.addEventListener('mousemove', e => {
+  if (!locked) return;
+  yaw   -= e.movementX * 0.002;
+  pitch -= e.movementY * 0.002;
+  pitch  = Math.max(-1.3, Math.min(1.3, pitch));
+  camera.rotation.set(pitch, yaw, 0);
+});
+window.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'Escape' && locked) document.exitPointerLock();
+  if (e.code === 'Space') {
+    e.preventDefault();
+  }
+  if (e.code === 'KeyY' && !e.repeat) {
+    if (connectingEl.style.display === 'block') confirmTrack();
+    else toggleYt();
+  }
+  if (e.code === 'KeyA' && !e.repeat) {
+    musicLabelEnabled = !musicLabelEnabled;
+    document.getElementById('coords').style.display = musicLabelEnabled ? 'block' : 'none';
+    if (!musicLabelEnabled) connectingEl.style.display = 'none';
+  }
+  if (e.code === 'ArrowUp'    && !e.repeat) { selectTrack(-1); e.preventDefault(); }
+  if (e.code === 'ArrowDown'  && !e.repeat) { selectTrack(+1); e.preventDefault(); }
+  if (e.code === 'ArrowLeft'  && !e.repeat) { seekYT(-10); e.preventDefault(); }
+  if (e.code === 'ArrowRight' && !e.repeat) { seekYT(+10); e.preventDefault(); }
+});
+window.addEventListener('keyup', e => keys[e.code] = false);
+
+// ── 岩 ───────────────────────────────────────────────────────────────────
+const LOOP_LENGTH = 234;
+const zoneRocks = new Map(); // rock → Set of model keys that hide it
+
+function getRockZones(wx, wz) {
+  const s = new Set();
+  if (wx < -1.6 && wz >= -97 && wz <= -65) s.add('sa04');
+  if (wx >= 1.6  && wz >= 20.8 && wz <= 23) s.add('sa05');
+  if (wx < -1.6 && wz >= -93 && wz <= -55) s.add('sa06');
+  if (wx < -1.6 && wz >= -47 && wz <= -16) s.add('sa07');
+  return s;
+}
+
+function addRocks() {
+  const colors = [0xd0d0cc, 0xd9cc90, 0xd4a08a, 0xccb890];
+  const rng = (a, b) => a + Math.random() * (b - a);
+  const entries = [];
+
+  for (let i = 0; i < 3000; i++) {
+    const wx = rng(PLAY_X_MIN, PLAY_X_MAX);
+    const wz = rng(PLAY_Z_MIN, PLAY_Z_MAX);
+    if (wx >= -2.1 && wx <= 2.1) continue; // 中央道路は常時除外
+    entries.push({
+      wx, wz,
+      r: rng(0.02, 0.0875),
+      sx: rng(0.7, 1.3), sy: rng(0.4, 0.85), sz: rng(0.7, 1.3),
+      rx: rng(0, Math.PI), ry: rng(0, Math.PI), rz: rng(0, Math.PI),
+      ci: Math.floor(Math.random() * 4),
+    });
+  }
+
+  for (const e of entries) {
+    const zones = getRockZones(e.wx, e.wz);
+    for (const dz of [0, -LOOP_LENGTH]) {
+      const geo  = new THREE.IcosahedronGeometry(e.r, 0);
+      const mat  = new THREE.MeshLambertMaterial({ color: colors[e.ci] });
+      const rock = new THREE.Mesh(geo, mat);
+      rock.scale.set(e.sx, e.sy, e.sz);
+      rock.rotation.set(e.rx, e.ry, e.rz);
+      rock.position.set(e.wx, e.r * e.sy * 0.45, e.wz + dz);
+      scene.add(rock);
+      if (zones.size > 0) zoneRocks.set(rock, zones);
+    }
+  }
+}
+
+
+// ── エリア外砂漠地面 ──────────────────────────────────────────────────────
+function addExtendedDesert() {
+  const geo = new THREE.PlaneGeometry(500, 700);
+  const mat = new THREE.MeshLambertMaterial({ color: 0xf0e3b9 });
+  const plane = new THREE.Mesh(geo, mat);
+  plane.rotation.x = -Math.PI / 2;
+  plane.position.set(0, -0.05, -116);
+  plane.frustumCulled = false;
+  scene.add(plane);
+}
+
+// ── 特殊モデル ロード・切替 ────────────────────────────────────────────────
+function loadSpecialModel(filename, px, py, pz) {
+  return new Promise(resolve => {
+    new GLTFLoader().load(filename + '?v=' + Date.now(), gltf => {
+      const m = gltf.scene;
+      m.traverse(child => {
+        if (!child.isMesh) return;
+        child.frustumCulled = false;
+        const fixMat = mat => {
+          if (!mat) return;
+          if (mat.color && mat.color.r > 0.6 && mat.color.g < 0.35 && mat.color.b > 0.5) {
+            child.visible = false; return;
+          }
+          mat.transparent = false; mat.opacity = 1; mat.depthWrite = true;
+          mat.needsUpdate = true;
+        };
+        Array.isArray(child.material) ? child.material.forEach(fixMat) : fixMat(child.material);
+      });
+      m.scale.set(0.4, 0.4, 0.4);
+      m.position.set(px, py, pz);
+      m.visible = false;
+      scene.add(m);
+      const mCopy = m.clone();
+      mCopy.position.set(px, py, pz - LOOP_LENGTH);
+      mCopy.visible = false;
+      scene.add(mCopy);
+      resolve({ main: m, copy: mCopy });
+    }, null, err => { console.error('[loadSpecialModel]', filename, err); resolve(null); });
+  });
+}
+
+function setMainModel(key) {
+  if (saModelMain) saModelMain.visible = (key === 'sa01');
+  if (model02)     model02.visible     = (key === 'sa02');
+  if (model03)     model03.visible     = (key === 'sa03');
+  if (model04)     model04.visible     = (key === 'sa04');
+  if (model05)     model05.visible     = (key === 'sa05');
+  if (model06)     model06.visible     = (key === 'sa06');
+  if (model07)     model07.visible     = (key === 'sa07');
+  if (model08)     model08.visible     = (key === 'sa08');
+  // ゾーン岩の表示切替（複数ゾーン重複対応）
+  for (const [rock, zones] of zoneRocks) {
+    rock.visible = !zones.has(key);
+  }
+}
+
+function setCopyModel(key) {
+  if (saModelCopy)  saModelCopy.visible  = (key === 'sa01');
+  if (model02Copy)  model02Copy.visible  = (key === 'sa02');
+  if (model03Copy)  model03Copy.visible  = (key === 'sa03');
+  if (model04Copy)  model04Copy.visible  = (key === 'sa04');
+  if (model05Copy)  model05Copy.visible  = (key === 'sa05');
+  if (model06Copy)  model06Copy.visible  = (key === 'sa06');
+  if (model07Copy)  model07Copy.visible  = (key === 'sa07');
+  if (model08Copy)  model08Copy.visible  = (key === 'sa08');
+}
+
+function resolveSeq(idx) {
+  const key = LOOP_SEQUENCE[((idx % LOOP_SEQUENCE.length) + LOOP_SEQUENCE.length) % LOOP_SEQUENCE.length];
+  if (key === 'sa02' && !model02) return 'sa01';
+  if (key === 'sa03' && !model03) return 'sa01';
+  if (key === 'sa04' && !model04) return 'sa01';
+  if (key === 'sa05' && !model05) return 'sa01';
+  if (key === 'sa06' && !model06) return 'sa01';
+  if (key === 'sa07' && !model07) return 'sa01';
+  if (key === 'sa08' && !model08) return 'sa01';
+  return key;
+}
+
+function handleLoopTransition() {
+  loopCount++;
+  const cur  = resolveSeq(loopCount);
+  const next = resolveSeq(loopCount + 1);
+  setMainModel(cur);
+  setCopyModel(next);
+  console.log(`[loop ${loopCount}] main → ${cur}, copy → ${next}`);
+}
+
+function checkSpecialSchedule() {}
+
+// ── GLTF ロード ───────────────────────────────────────────────────────────
+const pfill   = document.getElementById('pfill');
+const loading = document.getElementById('loading');
+
+new GLTFLoader().load('sa01.glb?v=' + Date.now(), gltf => {
+  const model = gltf.scene;
+
+  model.traverse(child => {
+    if (!child.isMesh) return;
+    child.frustumCulled = false;
+    const fix = m => {
+      if (!m) return;
+      if (m.color && m.color.r > 0.6 && m.color.g < 0.35 && m.color.b > 0.5) {
+        child.visible = false; return;
+      }
+      m.transparent = false; m.opacity = 1; m.depthWrite = true;
+      m.needsUpdate = true;
+    };
+    Array.isArray(child.material) ? child.material.forEach(fix) : fix(child.material);
+  });
+
+  model.scale.set(0.4, 0.4, 0.4);
+  model.updateMatrixWorld(true);
+
+  const box = new THREE.Box3().setFromObject(model);
+  const cen = box.getCenter(new THREE.Vector3());
+  model.position.set(-cen.x, 0, -cen.z);
+  scene.add(model);
+  model.updateMatrixWorld(true);
+
+  addRocks();
+  addExtendedDesert();
+
+  // シームレスループ用：GLTFモデルをLOOP_LENGTH先に複製（視覚のみ）
+  const modelCopy = model.clone();
+  modelCopy.position.set(model.position.x, model.position.y, model.position.z - LOOP_LENGTH);
+  scene.add(modelCopy);
+
+  saModelMain = model;
+  saModelCopy = modelCopy;
+  const _spx = model.position.x, _spy = model.position.y, _spz = model.position.z;
+  loadSpecialModel('sa02.glb', _spx, _spy, _spz).then(r => {
+    if (r) { model02 = r.main; model02Copy = r.copy; console.log('[sa02] loaded'); }
+  });
+  loadSpecialModel('sa03.glb', _spx, _spy, _spz).then(r => {
+    if (r) { model03 = r.main; model03Copy = r.copy; console.log('[sa03] loaded'); }
+  });
+  loadSpecialModel('sa04.glb', _spx, _spy, _spz).then(r => {
+    if (r) { model04 = r.main; model04Copy = r.copy; console.log('[sa04] loaded'); }
+  });
+  loadSpecialModel('sa05.glb', _spx, _spy, _spz).then(r => {
+    if (r) { model05 = r.main; model05Copy = r.copy; console.log('[sa05] loaded'); }
+  });
+  loadSpecialModel('sa06.glb', _spx, _spy, _spz).then(r => {
+    if (r) { model06 = r.main; model06Copy = r.copy; console.log('[sa06] loaded'); }
+  });
+  loadSpecialModel('sa07.glb', _spx, _spy, _spz).then(r => {
+    if (r) { model07 = r.main; model07Copy = r.copy; console.log('[sa07] loaded'); }
+  });
+  loadSpecialModel('sa08.glb', _spx, _spy, _spz).then(r => {
+    if (r) { model08 = r.main; model08Copy = r.copy; console.log('[sa08] loaded'); }
+  });
+
+  EYE_HEIGHT = 0.25;
+  camera.position.set(0, 0.27, -5);
+  yaw = 0;
+  camera.rotation.set(0, yaw, 0);
+
+  const box2 = new THREE.Box3().setFromObject(model);
+  const c2   = box2.getCenter(new THREE.Vector3());
+  console.log('モデル:', {
+    w: (box2.max.x - box2.min.x).toFixed(2),
+    h: (box2.max.y - box2.min.y).toFixed(2),
+    d: (box2.max.z - box2.min.z).toFixed(2),
+    center: { x: c2.x.toFixed(2), y: c2.y.toFixed(2), z: c2.z.toFixed(2) }
+  });
+
+  loading.style.display = 'none';
+
+}, xhr => {
+  if (xhr.total) pfill.style.width = (xhr.loaded / xhr.total * 100) + '%';
+}, err => {
+  console.error(err);
+  loading.querySelector('div').textContent = '読み込みエラー';
+});
+
+// ── オーバーレイ ──────────────────────────────────────────────────────────
+const overlay  = document.getElementById('overlay');
+const startBtn = document.getElementById('start-btn');
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('mousedown', e => {
+  if (e.button === 2 && locked) document.exitPointerLock();
+});
+
+// 音量スライダー
+const engineVolSlider = document.getElementById('engine-vol');
+const engineVolLbl    = document.getElementById('engine-vol-lbl');
+engineVolSlider.addEventListener('input', () => {
+  if (masterGain) masterGain.gain.value = engineVolSlider.value / 100;
+  engineVolLbl.textContent = engineVolSlider.value + '%';
+});
+
+const ytVolSlider = document.getElementById('yt-vol');
+const ytVolLbl    = document.getElementById('yt-vol-lbl');
+ytVolSlider.addEventListener('input', () => {
+  const v = parseInt(ytVolSlider.value);
+  if (ytPlayer) ytPlayer.setVolume(Math.min(100, Math.max(0, Math.round(v * currentVolAdj))));
+  radioAudio.volume = Math.min(1, Math.max(0, v / 100 * currentVolAdj));
+  ytVolLbl.textContent = v + '%';
+});
+
+// ページ読み込み時点でYouTube準備を開始（ユーザー操作不要）
+loadPlaylist().then(() => initYTPlayer()).catch(console.error);
+
+startBtn.addEventListener('click', () => {
+  overlay.classList.add('hidden');
+  document.body.requestPointerLock();
+  initAudio().catch(console.error);
+  gameStartTime = performance.now();
+});
+
+// ── 移動ループ ────────────────────────────────────────────────────────────
+const _f = new THREE.Vector3(), _r = new THREE.Vector3();
+let t0 = performance.now();
+
+function updateMovement() {
+  if (!locked) return;
+  const now = performance.now();
+  const dt  = Math.min((now - t0) / 1000, 0.05);
+  t0 = now;
+
+  const gp = navigator.getGamepads()[0];
+  if (gp) {
+    const rx = Math.abs(gp.axes[2]) > 0.12 ? gp.axes[2] : 0;
+    const ry = Math.abs(gp.axes[3]) > 0.12 ? gp.axes[3] : 0;
+    if (rx || ry) {
+      yaw   -= rx * 0.04;
+      pitch -= ry * 0.03;
+      pitch  = Math.max(-1.3, Math.min(1.3, pitch));
+      camera.rotation.set(pitch, yaw, 0);
+    }
+    const dpadUp    = !!gp.buttons[12]?.pressed;
+    const dpadDown  = !!gp.buttons[13]?.pressed;
+    const dpadLeft  = !!gp.buttons[14]?.pressed;
+    const dpadRight = !!gp.buttons[15]?.pressed;
+    if (dpadUp   && !gpDpadUpPrev)   { selectTrack(-1); console.log('[dpad] up btn12'); }
+    if (dpadDown && !gpDpadDownPrev) { selectTrack(+1); console.log('[dpad] down btn13'); }
+    if (dpadLeft  && !gpDpadLeftPrev)  seekYT(-10);
+    if (dpadRight && !gpDpadRightPrev) seekYT(+10);
+    const btnY = !!gp.buttons[3]?.pressed;
+    const btnA = !!gp.buttons[0]?.pressed;
+    const btnB = !!gp.buttons[1]?.pressed;
+    const btnSelect = !!gp.buttons[8]?.pressed;
+    if (btnY && !gpBtnYPrev) {
+      if (connectingEl.style.display === 'block') confirmTrack();
+      else toggleYt();
+    }
+    if (btnA && !gpBtnAPrev) {
+      musicLabelEnabled = !musicLabelEnabled;
+      document.getElementById('coords').style.display = musicLabelEnabled ? 'block' : 'none';
+      if (!musicLabelEnabled) connectingEl.style.display = 'none';
+    }
+    if (btnSelect && !gpSelectPrev && locked) document.exitPointerLock();
+    gpDpadUpPrev    = dpadUp;
+    gpDpadDownPrev  = dpadDown;
+    gpDpadLeftPrev  = dpadLeft;
+    gpDpadRightPrev = dpadRight;
+    gpBtnYPrev      = btnY;
+    gpBtnAPrev      = btnA;
+    gpBtnBPrev      = btnB;
+    gpSelectPrev    = btnSelect;
+  }
+
+  // アクセル・ブレーキ（押しっぱなし）
+  const accel = keys.Space || (gp ? (gp.buttons[7]?.value ?? 0) > 0.1 || !!gp.buttons[7]?.pressed : false);
+  const brake = keys.KeyB  || (gp ? (gp.buttons[6]?.value ?? 0) > 0.1 || !!gp.buttons[6]?.pressed || !!gp.buttons[1]?.pressed : false);
+  if (accel && !brake) {
+    cruiseSpeed = Math.min(MAX_CRUISE, cruiseSpeed + ACCEL_RATE * dt);
+  } else if (brake) {
+    cruiseSpeed = Math.max(0, cruiseSpeed - DECEL_RATE * dt);
+  }
+  updateCruiseBgm();
+
+  let mz = (keys.KeyS ? 1 : 0) - (keys.KeyW ? 1 : 0);
+  let mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
+  if (gp) {
+    if (Math.abs(gp.axes[0]) > 0.12) mx += gp.axes[0];
+    if (Math.abs(gp.axes[1]) > 0.12) mz += gp.axes[1];
+  }
+
+  const running = keys.ShiftLeft || keys.ShiftRight;
+  const spd = running ? RUN_SPEED : WALK_SPEED;
+
+  _f.set(0,0,-1).applyQuaternion(camera.quaternion); _f.y=0; _f.normalize();
+  _r.set(1,0, 0).applyQuaternion(camera.quaternion); _r.y=0; _r.normalize();
+
+  // アクセル自動前進
+  if (cruiseSpeed > 0) {
+    camera.position.x += _f.x * cruiseSpeed * dt;
+    camera.position.z += _f.z * cruiseSpeed * dt;
+  }
+
+  // WASD追加移動
+  if (mx || mz) {
+    camera.position.x += (_f.x*(-mz) + _r.x*mx) * spd * dt;
+    camera.position.z += (_f.z*(-mz) + _r.z*mx) * spd * dt;
+  }
+
+  // X方向は壁で制限、Z方向はループ
+  camera.position.x = Math.max(PLAY_X_MIN + PLAYER_R, Math.min(PLAY_X_MAX - PLAYER_R, camera.position.x));
+  if (camera.position.z <= PLAY_Z_MIN) { camera.position.z += LOOP_LENGTH; handleLoopTransition(); }
+
+}
+
+// ── 遠景山並み（3重シリンダー）────────────────────────────────────────────
+function buildMountainRings() {
+  function makeMtnTex(seed, color, rangeScale = 1.0) {
+    const W = 2048, H = 512;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+    const profile = new Float32Array(W + 1);
+    for (let x = 0; x <= W; x++) {
+      const t = x / W * Math.PI * 2;
+      let h = 0;
+      h += 0.30 * Math.sin(t * 3  + seed);
+      h += 0.20 * Math.sin(t * 7  + seed * 1.3);
+      h += 0.10 * Math.sin(t * 13 + seed * 0.7);
+      h += 0.05 * Math.sin(t * 23 + seed * 2.1);
+      h += 0.03 * Math.sin(t * 41 + seed * 1.7);
+      profile[x] = h;
+    }
+    const mn = Math.min(...profile), mx = Math.max(...profile);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x++) {
+      const n = (profile[x] - mn) / (mx - mn);
+      ctx.lineTo(x, H * (0.60 + (1 - n) * 0.38 * rangeScale));
+    }
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.fill();
+    return new THREE.CanvasTexture(cv);
+  }
+
+  const layers = [
+    { r: 150, h: 90,  cy: 15, color: '#8a7860', seed: 1.2, rs: 37/90  },
+    { r: 260, h: 95,  cy: 17, color: '#7a7890', seed: 2.7, rs: 43/95  },
+    { r: 400, h: 100, cy: 20, color: '#9898b0', seed: 4.1, rs: 53/100 },
+  ];
+
+  const rings = [];
+  for (const L of layers) {
+    const mat = new THREE.MeshBasicMaterial({
+      map: makeMtnTex(L.seed, L.color, L.rs),
+      side: THREE.BackSide,
+      transparent: true,
+      alphaTest: 0.05,
+      depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(L.r, L.r, L.h, 64, 1, true),
+      mat
+    );
+    mesh.position.y = L.cy;
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+    rings.push(mesh);
+  }
+  return rings;
+}
+const mountainRings = buildMountainRings();
+
+// ── レンダーループ ────────────────────────────────────────────────────────
+function animate() {
+  requestAnimationFrame(animate);
+  updateMovement();
+  for (const ring of mountainRings) {
+    ring.position.x = camera.position.x;
+    ring.position.z = camera.position.z;
+  }
+  // 空グラデーション遷移
+  const sp = 0.025;
+  skyUniforms.topColor.value.lerp(skyTopTarget, sp);
+  skyUniforms.horizonColor.value.lerp(skyHorizTarget, sp);
+  skyUniforms.horizonBandColor.value.lerp(skyHorizBandTarget, sp);
+  scene.fog.color.lerp(skyHorizTarget, sp);
+  skyMesh.position.copy(camera.position);
+  window._updateRain();
+  window._updateStars();
+  checkSpecialSchedule();
+  document.getElementById('coords').textContent =
+    `${Math.round(cruiseSpeed / MAX_CRUISE * 120)} km/h`;
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ── ラジオプレイヤー ──────────────────────────────────────────────────────
+const radioAudio = new Audio();
+let radioHls     = null;
+let radioActive  = false;
+
+function playRadio(url) {
+  if (radioHls) { radioHls.destroy(); radioHls = null; }
+  radioAudio.pause();
+  radioAudio.volume = Math.min(1, parseInt(ytVolSlider.value) / 100 * currentVolAdj);
+  if (typeof Hls !== 'undefined' && Hls.isSupported() && /\.m3u8/i.test(url)) {
+    radioHls = new Hls();
+    radioHls.loadSource(url);
+    radioHls.attachMedia(radioAudio);
+    radioHls.on(Hls.Events.MANIFEST_PARSED, () => radioAudio.play().catch(console.error));
+  } else {
+    radioAudio.src = url;
+    radioAudio.play().catch(console.error);
+  }
+  radioActive = true;
+}
+
+function stopRadio() {
+  if (radioHls) { radioHls.destroy(); radioHls = null; }
+  radioAudio.pause();
+  radioAudio.src = '';
+  radioActive = false;
+}
+
+radioAudio.addEventListener('playing', () => {
+  connectingEl.style.display = 'none';
+});
+</script>
+</body>
+</html>

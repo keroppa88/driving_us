@@ -1,0 +1,309 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Driving in the USA ─ GitHub公開 & 引き継ぎ手順書
+  ファイル: driving_github/手順.txt
+  作成日: 2026-05-16
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+■ 1. GitHubへのアップロード手順
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1-1. リポジトリ作成
+  - GitHub.com にログイン
+  - 右上「+」→「New repository」
+  - Repository name: 例）driving-in-the-usa
+  - Public を選択（GitHub Pagesに必要）
+  - 「Add a README file」はチェックしなくてよい
+  - 「Create repository」をクリック
+
+1-2. ファイルのアップロード
+  作成したページに「uploading an existing file」リンクがある。
+  または「Add file」→「Upload files」
+
+  driving_github フォルダの中身を全て選択してドラッグ＆ドロップ：
+    index.html
+    musiclist.txt
+    sa01.glb ～ sa08.glb
+    music/（フォルダごと）
+
+  「Commit changes」ボタンで確定。
+
+1-3. GitHub Pages の有効化
+  - リポジトリの「Settings」タブ
+  - 左メニュー「Pages」
+  - Branch: main / (root) を選択
+  - 「Save」ボタン
+  - 1〜2分後に公開URL が表示される：
+    https://ユーザー名.github.io/リポジトリ名/
+
+1-4. 動作確認
+  - 上記URLをブラウザで開く
+  - ロード画面が表示され、GLBモデルが読み込まれればOK
+  - ポインターロック対応ブラウザ（Chrome推奨）で動作確認
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 2. ゲーム概要
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+タイトル: Driving in the USA
+ファイル: index.html（シングルファイル構成）
+エンジン: Three.js r0.163.0（importmap CDN経由）
+音楽: YouTube IFrame API + hls.js（ネットラジオ）
+
+アメリカの砂漠道路を走りながら音楽を楽しむゲーム。
+ポインターロックで視点操作、スペースキーでアクセル。
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 3. 操作方法
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+キーボード:
+  Space       アクセル（押しっぱなし）
+  B           ブレーキ（押しっぱなし）
+  ↑↓         曲選択（musiclistを上下に移動）
+  ←→         YouTubeの巻き戻し／早送り（±10秒）
+  Y           曲を決定・再生 / 再生中は再生停止トグル
+  A           速度計・曲名表示 の 表示/非表示トグル
+  ESC         タイトル画面（ポインターロック解除）
+
+ゲームパッド（Standard Mapping 準拠）:
+  RT(buttons[7])      アクセル
+  LT(buttons[6])      ブレーキ
+  Bボタン(buttons[1]) ブレーキ（LTと同じ）
+  Yボタン(buttons[3]) 決定・再生停止
+  Aボタン(buttons[0]) 表示/非表示トグル
+  十字上(buttons[12]) 曲を上に選択
+  十字下(buttons[13]) 曲を下に選択
+  十字左(buttons[14]) 巻き戻し -10秒
+  十字右(buttons[15]) 早送り +10秒
+  Selectボタン(buttons[8]) タイトル画面
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 4. コード構造（index.html）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4-1. 主要定数・変数
+
+  const MAX_CRUISE = 22;      // 最高速度（内部値）→ 120km/h表示
+  const ACCEL_RATE = 5;       // 加速度（/秒）
+  const DECEL_RATE = 10;      // 減速度（/秒）
+  let cruiseSpeed = 0;        // 現在速度
+
+  const LOOP_LENGTH = 234;    // Z方向ループ距離
+  const PLAY_X_MIN = -21.1, PLAY_X_MAX = 21.1;  // X方向移動制限
+  const PLAY_Z_MIN = -233,  PLAY_Z_MAX = 1;      // Z方向範囲
+
+  カメラY座標: 固定 0.27（地面追従なし）
+
+4-2. LOOP_SEQUENCE（モデル切替シーケンス）
+
+  現在は一時テスト用に 'sa01', 'sa08' の2要素のみ。
+  本番用は108要素の配列に戻す必要がある（下記参照）。
+
+  本番用 LOOP_SEQUENCE（108要素）:
+  const LOOP_SEQUENCE = [
+    'sa01','sa01','sa01','sa02','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa06',
+    'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa05',
+    'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa02','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa04',
+    'sa01','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa01','sa01','sa02','sa01','sa01','sa01','sa01','sa01',
+    'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa07',
+    'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01',
+  ];
+
+4-3. モデル構成
+
+  sa01.glb  ベース道路（常時ロード）
+  sa02.glb  青い看板
+  sa03.glb  黄色い看板
+  sa04.glb  ケンタッキー・モービル
+  sa05.glb  マルボロ看板
+  sa06.glb  シェルガソリンスタンド
+  sa07.glb  バグダッドカフェ
+  sa08.glb  （追加モデル、内容未定）
+
+  スケール: 全モデル共通 0.4
+  ロード方式:
+    sa01 → GLTFLoader 直接ロード（メイン）
+    sa02〜sa08 → loadSpecialModel() で非同期ロード、初期状態は非表示
+    各モデルは main（現在地） + copy（LOOP_LENGTH先）の2つをシーンに追加
+
+4-4. モデル切替関数
+
+  setMainModel(key) → 現在地に表示するモデルを切替
+  setCopyModel(key) → 遠景（先読み）のモデルを切替
+  resolveSeq(idx)   → LOOP_SEQUENCE の idx 番目のモデルキーを返す
+                      ロードできていない場合は 'sa01' にフォールバック
+  handleLoopTransition() → ループ通過時に呼ばれる。loopCountを+1してモデル切替
+
+4-5. 岩配置システム
+
+  総数: 3000個（main + copy で各2箇所）
+  サイズ: r = rng(0.02, 0.0875)
+
+  除外ルール:
+    常時: x が -2.1〜+2.1 は配置しない（中央道路）
+
+  モデル別ゾーン除外（そのモデルが表示中のみ岩を非表示）:
+    sa04: x < -1.6  かつ  z: -97〜-65
+    sa05: x >= 1.6  かつ  z: 20.8〜23
+    sa06: x < -1.6  かつ  z: -93〜-55
+    sa07: x < -1.6  かつ  z: -47〜-16
+
+  ※ sa04 と sa06 は z 範囲が重複するため
+     Map<rock, Set<key>> 構造（zoneRocks）で管理
+     setMainModel() 呼び出し時に全ゾーン岩を再評価
+
+4-6. 音楽システム
+
+  エンジン音（Web Audio API ギャップレスループ）:
+    music/drive_on_freeway1.mp3  → 速度 0〜14 で再生
+    music/drive_on_freeway2.mp3  → 速度 14〜MAX_CRUISE で再生
+    初期音量: 70%
+
+  YouTube（YouTube IFrame API）:
+    ytPlayer / ytReady フラグで管理
+    初期音量: 70%
+
+  ネットラジオ（hls.js + HTML5 Audio）:
+    radioAudio: new Audio()
+    radioHls: Hls インスタンス（m3u8 の場合のみ生成）
+    radioActive: boolean フラグ
+    .m3u8 URL → hls.js で再生
+    その他 URL（mp3等）→ Audio.src に直接セット
+
+  音量補正（musiclist.txtのキーワード）:
+    音量-N% / 音量+N% → currentVolAdj係数に乗算
+    補正リセット: 別の曲を決定したとき / 曲が自然終了したとき（onStateChange 0）
+
+4-7. プレイリスト（loadPlaylist関数）
+
+  musiclist.txt をフェッチしてパース。
+  エントリ型:
+    { type: 'yt',    id: videoId, name, color, rain, star, solid, horiz, volAdj }
+    { type: 'radio', id: streamUrl, name, color, rain, star, solid, horiz, volAdj }
+    { type: 'label', id: null, name }  ← URLなし行はラベル（セクション見出し）
+
+  ラベルはリスト上で表示されるだけで再生はしない（isBrowsing = false）
+
+4-8. 空・視覚エフェクト
+
+  空グラデーション: ShaderMaterial（topColor / horizonColor / horizonBandColor）
+  setSkyFromColor(hex, solid) → musiclistの #RRGGBB キーワードで変更
+  setSkyHorizBand(hex)        → musiclistの 地平線#RRGGBB キーワードで変更
+  雨エフェクト: rainActive フラグ、5000本のLineSegments
+  星エフェクト: starActive フラグ、2000点のPoints（上半球）
+  山並み: 3重シリンダー（CanvasTexture で山形プロファイル生成）
+
+4-9. UI
+
+  #coords       左上固定 → 速度計表示（km/h）
+                Aキー/Aボタンで表示/非表示トグル
+  #connecting   画面下中央 → 曲名・接続中テキスト表示
+  #overlay      タイトル画面（ESCで表示、DRIVE STARTで非表示）
+  #loading      ロード中画面（sa01.glb ロード完了で非表示）
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 5. musiclist.txt 書式
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+URL「アーティスト名,曲名」[キーワード...]
+
+キーワード:
+  #RRGGBB          空の色
+  雨               雨エフェクト ON
+  星               星空エフェクト ON
+  単色             空グラデーションなし（ベタ塗り）
+  地平線#RRGGBB    地平線バンド色
+  音量-N%          音量を N% 下げる（乗算）
+  音量+N%          音量を N% 上げる（乗算）
+
+URLなし行 → セクションラベル（「ラジオ」「Music」など）
+  リスト上に表示されるが再生は行わない
+
+YouTube: youtube.com / youtu.be を含むURL → type: 'yt'
+ラジオ:  それ以外のURL → type: 'radio'（hls.js または Audio直接再生）
+
+注意: musiclistのURLに & が含まれる場合は &amp; でも可（コード内で変換済み）
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 6. 現在の暫定状態（変更が必要な箇所）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【要修正】LOOP_SEQUENCE がテスト用のまま
+
+  現在:
+    const LOOP_SEQUENCE = [
+      // 一時テスト: 1 8
+      'sa01', 'sa08',
+    ];
+
+  本番に戻す場合は上記「4-2. 本番用 LOOP_SEQUENCE（108要素）」に差し替え。
+
+【未確認】ラジオURLのCORS・接続可否
+
+  musiclist.txt 先頭のラジオ局は全てテスト済みとは限らない。
+  実際にプレイしながら接続できないURLは削除または差し替えが必要。
+
+  確認済み動作:
+    NHK AM: https://simul.drdi.st.nhk/live/3/joined/master.m3u8
+    NHK FM: https://simul.drdi.st.nhk/live/5/joined/audio/media.m3u8
+
+【未対応】BBC World Service
+  https://www.bbc.com/audio/play/live/bbc_world_service
+  現行ストリームURL（.m3u8）が不明。DevToolsでNetwork > m3u8 フィルターで探す。
+  DASH形式（.mpd）しかない場合はdash.jsライブラリの追加が必要。
+
+【未対応】Radiko
+  独自認証トークンが必要で実装が複雑なため保留。
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 7. 依存ライブラリ（CDN）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  hls.js:   https://cdn.jsdelivr.net/npm/hls.js@latest
+  three.js: https://unpkg.com/three@0.163.0/build/three.module.js
+  GLTFLoader: https://unpkg.com/three@0.163.0/examples/jsm/loaders/GLTFLoader.js
+  YouTube IFrame API: https://www.youtube.com/iframe_api
+
+  ※ GitHub Pages 公開後もCDNはそのまま使用。ローカルファイルへの変換不要。
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 8. ファイル構成
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  driving_github/（これがGitHubリポジトリのルートになる）
+  ├── index.html         メインゲームファイル（約40KB）
+  ├── musiclist.txt      プレイリスト（ラジオ+YouTube）
+  ├── sa01.glb           ベース道路（71KB）
+  ├── sa02.glb           青い看板（184KB）
+  ├── sa03.glb           黄色い看板（92KB）
+  ├── sa04.glb           ケンタッキー・モービル（260KB）
+  ├── sa05.glb           マルボロ看板（109KB）
+  ├── sa06.glb           シェルガソリンスタンド（166KB）
+  ├── sa07.glb           バグダッドカフェ（253KB）
+  ├── sa08.glb           追加モデル（6MB）
+  └── music/
+      ├── drive_on_freeway1.mp3   低速BGM（654KB）
+      ├── drive_on_freeway2.mp3   高速BGM（472KB）
+      └── 決定ボタンを押す7.mp3   決定SE（29KB）
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 9. 今後の改修候補
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - LOOP_SEQUENCE を本番用108要素に戻す
+  - sa08.glb の岩除外ゾーン設定（現在未設定）
+  - BBC World Service ストリームURL の追加
+  - 動作しないラジオURLの整理
+  - モバイル対応（タッチ操作）
+  - その他モデルの追加（sa09以降）
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
