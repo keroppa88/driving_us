@@ -6,8 +6,8 @@
 * 映画『バグダッドカフェ』（見てない）、『シェルタリングスカイ』など夕日の砂漠イメージから着想。
 
 イメージ↓
->https://www.youtube.com/watch?v=XTYLsULsefs&list=RDXTYLsULsefs&start_radio=1 （※シェルタリングスカイの砂漠は北アフリカ）
->https://www.youtube.com/watch?v=oCLpLWcX2cg&list=RDoCLpLWcX2cg&start_radio=1
+* https://www.youtube.com/watch?v=XTYLsULsefs&list=RDXTYLsULsefs&start_radio=1 （※シェルタリングスカイの砂漠は北アフリカ）
+* https://www.youtube.com/watch?v=oCLpLWcX2cg&list=RDoCLpLWcX2cg&start_radio=1
 
 ### PC専用、スマホ非対応
 * PC専用。ゲームコントローラー使用可能。
@@ -44,6 +44,14 @@
 * 最終的には、スケッチアップの7日間フリートライアルに加入してGLB出力した。
 * 衝突設定は無し。ゴーストライダー的な。死んで浮遊しているのかもしれないな。
 <img width="300" height="303" alt="image" src="https://github.com/user-attachments/assets/9170510b-f5f2-4e37-b8d1-92dd9f11373d" />
+
+<img width="300" height="140" alt="image" src="https://github.com/user-attachments/assets/935ae174-6fad-47cd-94f5-6ad42bae2e22" />
+
+<img width="300" height="240" alt="image" src="https://github.com/user-attachments/assets/3922ddbd-f3e2-4e99-9780-c017fb9b27e3" />
+
+<img width="300" height="320" alt="image" src="https://github.com/user-attachments/assets/4fbee28e-7c48-4b03-8076-ec77f5b4bdf4" />
+
+<img width="300" height="270" alt="image" src="https://github.com/user-attachments/assets/4183cdd6-c4e2-40fc-b026-1e6075e4ed3f" />
 
 ## インストール
 * ウェブのブラウザでプレイできる。
