@@ -11,7 +11,8 @@
 * 映画『バグダッドカフェ』（見てない）、『シェルタリングスカイ』など夕日の砂漠イメージから着想。
 
 イメージ↓
-* https://www.youtube.com/watch?v=XTYLsULsefs&list=RDXTYLsULsefs&start_radio=1 （※シェルタリングスカイの砂漠は北アフリカ）
+* https://www.youtube.com/watch?v=XTYLsULsefs&list=RDXTYLsULsefs&start_radio=1
+> （※シェルタリングスカイの砂漠は北アフリカ）
 * https://www.youtube.com/watch?v=oCLpLWcX2cg&list=RDoCLpLWcX2cg&start_radio=1
 
 ### PC専用、スマホ非対応
