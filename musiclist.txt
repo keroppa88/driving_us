@@ -2,14 +2,26 @@
 https://simul.drdi.st.nhk/live/3/joined/master.m3u8　「Radio,日本/NHK AM」
 https://simul.drdi.st.nhk/live/5/joined/audio/media.m3u8　「Radio,日本/NHK FM」
 https://bigrradio.cdnstream1.com/5182_128?listenerid=ea4ef9d7-dc2d-496b-9f18-5bbd5ca7923a&amp;cb=974096.mp3 「Radio,USA/Big R Radio-70s FM」
+https://stream1.rcast.net/72991 「Radio,USA/San Francisco's 70s HITS」
+https://classicrock.stream.laut.fm/classicrock 「Radio,Deutsch/Classic Rock」
 https://streams.cbnradio.com/news-128K?app=onlineradiobox 「Radio,USA/CBN News」
 https://www.ophanim.net:8444/s/9780 「Radio,USA/Side Street Radio」
-https://stream1.rcast.net/72991 「Radio,USA/San Francisco's 70s HITS」
 https://s4.radio.co/s44e9ca299/listen 「Radio,USA/Country Joy」
 https://streaming.live365.com/2158_128.mp3 「Radio,USA/Houston Blues Radio」
 https://streaming.live365.com/b75154_128mp3 「Radio,USA/Smooth Jazz 247」
 https://streams.cbnradio.com//southern-gospel-128K 「Radio,USA/CBN Southern Gospel」
+https://cdn.onlyhitsradio.net/tophits 「Radio,USA/Only Hits world」
+https://cdn.onlyhitsradio.net/onlyhits 「Radio,USA/Only Hits US Billboard」
 https://online.hitfm.ua/HitFM 「Radio,Ukraine/Хіт FM96.4」
+https://cdn.onlyhitsradio.net/japan 「Radio,USA/Only Hits Japan」
+https://cdn.onlyhitsradio.net/kpop_64 「Radio,USA/Only Hits K-Pop」
+https://listen.openstream.co/4457/audio 「Radio,France/ABC Lounge Radio」
+https://stream.zeno.fm/mpkpe4f0etzuv 「Radio,UK/The Hit Network Extra」
+https://stream.ginnet.cloud/live0119lo-p4rb/_definst_/fm1043/playlist.m3u8 「Radio,台湾/Gogo Radio FM 104.3(桃園)」
+https://stream.zeno.fm/g372rxef798uv 「Radio,India/Retro Bollywood」
+https://radio.avazfarsi.com:8000/radio.mp3「Radio,Iran(USA)/Radio AvazFarsi」
+https://classic-radio.stream.laut.fm/classic-radio 「Radio,Deutsch/Classic Radio」
+https://media-ssl.musicradio.com/ClassicFM 「Radio,UK/Classic FM」
 Music
 https://www.youtube.com/watch?v=Uw5OLnN7UvM「Bill Withers,Just The Two Of Us」
 https://www.youtube.com/watch?v=fPMoLEjM_K4「Barry White,Can't Get Enough Of Your Love, Babe」
