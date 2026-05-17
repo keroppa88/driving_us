@@ -21,7 +21,7 @@
   #overlay.hidden { display: none; }
   #overlay h1 { font-size: 2rem; margin-bottom: 0.5em; }
   #overlay p { color: #aaa; font-size: 0.9rem; margin: 0.2em 0; }
-  .vol-section { margin-top: 1.2em; width: 280px; }
+  .vol-section { margin-top: 1.2em; width: 280px; text-align: center; }
   .vol-section h2 { font-size: 0.8rem; color: #888; margin: 0 0 0.5em; letter-spacing: 0.05em; }
   .vol-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.5em; }
   .vol-row label { color: #bbb; font-size: 0.82rem; width: 90px; text-align: right; white-space: nowrap; }
@@ -60,16 +60,14 @@
     pointer-events: none; z-index: 5;
     text-shadow: 0 0 4px #000;
   }
-  .controls { margin: 0.8em 0; }
+  .controls { margin: 0.8em 0; display: table; margin-left: auto; margin-right: auto; }
   .ctrl-row {
-    display: flex; align-items: baseline;
-    margin-bottom: 0.22em;
+    display: table-row;
     font-size: 0.84rem; font-family: monospace; color: #ccc;
   }
-  .ctrl-key  { display: inline-block; min-width: 4.2em; color: #e0e0e0; }
-  .ctrl-key::after { content: '/'; }
-  .ctrl-sep  { display: none; }
-  .ctrl-desc { color: #aaa; margin-left: 0.3em; }
+  .ctrl-key  { display: table-cell; text-align: right; padding: 0.1em 0.3em 0.1em 0; color: #e0e0e0; white-space: nowrap; }
+  .ctrl-sep  { display: table-cell; text-align: center; padding: 0.1em 0.2em; color: #666; }
+  .ctrl-desc { display: table-cell; text-align: left;  padding: 0.1em 0 0.1em 0.3em; color: #aaa; white-space: nowrap; }
 </style>
 </head>
 <body>
