@@ -215,7 +215,9 @@ let skyTopTarget       = new THREE.Color(0x4a6fa0);
 let skyHorizTarget     = new THREE.Color(0xc8daf0);
 let skyHorizBandTarget = new THREE.Color(0xc8daf0);
 
+let skyIsBlack = false;
 function setSkyFromColor(hex, solid = false) {
+  skyIsBlack = (hex.toLowerCase() === '#000000');
   const base = new THREE.Color(hex);
   skyTopTarget.copy(base).multiplyScalar(0.42);
   if (solid) {
@@ -1011,6 +1013,7 @@ function animate() {
   for (const ring of mountainRings) {
     ring.position.x = camera.position.x;
     ring.position.z = camera.position.z;
+    ring.visible = !skyIsBlack;
   }
   extDesertPlane.position.x = camera.position.x;
 
