@@ -1022,8 +1022,8 @@ function animate() {
     const onRocks = Math.abs(camera.position.x) > 2.1;
     const speedKmh = cruiseSpeed / MAX_CRUISE * 120;
     if (onRocks && speedKmh >= 80) {
-      shakePhase = (shakePhase + dt2 * 3) % 2;
-      pitchShake = -(5 * Math.PI / 180) * (1 - Math.cos(Math.PI * shakePhase)) / 2;
+      shakePhase = (shakePhase + dt2 * 18) % 2;
+      pitchShake = -(1.25 * Math.PI / 180) * (1 - Math.cos(Math.PI * shakePhase)) / 2;
     } else {
       shakePhase = 0;
       pitchShake *= 0.85;
