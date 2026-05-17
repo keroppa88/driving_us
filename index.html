@@ -1019,9 +1019,9 @@ function animate() {
     const onRocks = Math.abs(camera.position.x) > 2.1;
     const speedKmh = cruiseSpeed / MAX_CRUISE * 120;
     const active = onRocks && speedKmh >= 80;
-    shakeIntensity += ((active ? 1 : 0) - shakeIntensity) * 0.1;
-    shakeT += 0.063; // ~10Hz
-    camera.position.y = 0.27 + shakeIntensity * 0.018 * Math.sin(shakeT);
+    shakeIntensity += ((active ? 1 : 0) - shakeIntensity) * 0.15;
+    shakeT += 0.11; // ~17Hz
+    camera.position.y = 0.27 + shakeIntensity * 0.07 * Math.sin(shakeT);
   }
 
   // 空グラデーション遷移
