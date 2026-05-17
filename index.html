@@ -21,6 +21,8 @@
   #overlay.hidden { display: none; }
   #overlay h1 { font-size: 2rem; margin-bottom: 0.5em; }
   #overlay p { color: #aaa; font-size: 0.9rem; margin: 0.2em 0; }
+  #autopilot-label { margin-top: 1em; font-size: 0.85rem; color: #bbb; cursor: pointer; user-select: none; }
+  #autopilot-label input { accent-color: #aaa; cursor: pointer; }
   .vol-section { margin-top: 1.2em; width: 280px; text-align: center; }
   .vol-section h2 { font-size: 0.8rem; color: #888; margin: 0 0 0.5em; letter-spacing: 0.05em; }
   .vol-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.5em; }
@@ -88,6 +90,8 @@
     <div class="ctrl-row"><span class="ctrl-key">A</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music表記、表示・非表示</span></div>
     <div class="ctrl-row"><span class="ctrl-key">ESC</span><span class="ctrl-sep">/</span><span class="ctrl-desc">ゲーム中断、タイトル・操作説明画面</span></div>
   </div>
+
+  <label id="autopilot-label"><input type="checkbox" id="autopilot-chk"> オートパイロット</label>
 
   <div class="vol-section">
     <h2>── 音量設定 ──</h2>
@@ -942,14 +946,23 @@ function updateMovement() {
   _f.set(0,0,-1).applyQuaternion(camera.quaternion); _f.y=0; _f.normalize();
   _r.set(1,0, 0).applyQuaternion(camera.quaternion); _r.y=0; _r.normalize();
 
+  const autoPilot = document.getElementById('autopilot-chk').checked;
+  const AP_TARGET_X = 1.26; // 道路中央より左30%（仮）
+
   // アクセル自動前進
   if (cruiseSpeed > 0) {
-    camera.position.x += _f.x * cruiseSpeed * dt;
-    camera.position.z += _f.z * cruiseSpeed * dt;
+    if (autoPilot) {
+      // オートパイロット：常にまっすぐ進み、左車線中央にゆっくり寄せる
+      camera.position.z -= cruiseSpeed * dt;
+      camera.position.x += (AP_TARGET_X - camera.position.x) * Math.min(0.5 * dt, 1);
+    } else {
+      camera.position.x += _f.x * cruiseSpeed * dt;
+      camera.position.z += _f.z * cruiseSpeed * dt;
+    }
   }
 
-  // WASD追加移動
-  if (mx || mz) {
+  // WASD追加移動（オートパイロット中は無効）
+  if (!autoPilot && (mx || mz)) {
     camera.position.x += (_f.x*(-mz) + _r.x*mx) * spd * dt;
     camera.position.z += (_f.z*(-mz) + _r.z*mx) * spd * dt;
   }
