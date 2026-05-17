@@ -947,7 +947,7 @@ function updateMovement() {
   _r.set(1,0, 0).applyQuaternion(camera.quaternion); _r.y=0; _r.normalize();
 
   const autoPilot = document.getElementById('autopilot-chk').checked;
-  const AP_TARGET_X = 1.26; // 道路中央より左30%（仮）
+  const AP_TARGET_X = -1.17; // 右車線中央寄り（仮）
 
   // アクセル自動前進
   if (cruiseSpeed > 0) {
