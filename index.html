@@ -91,6 +91,7 @@
     <div class="ctrl-row"><span class="ctrl-key">Y</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music、再生・停止</span></div>
     <div class="ctrl-row"><span class="ctrl-key">A</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music表記、表示・非表示</span></div>
     <div class="ctrl-row"><span class="ctrl-key">ESC</span><span class="ctrl-sep">/</span><span class="ctrl-desc">中断、タイトル・操作説明</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">X</span><span class="ctrl-sep">/</span><span class="ctrl-desc">画面Watchモード</span></div>
   </div>
 
   <div id="audio-loading" style="margin-top:0.8em;font-size:0.85rem;color:#aaa;text-align:center;">読み込み中・・・</div>
@@ -538,7 +539,7 @@ let starActive = false;
 
 
 // ── 入力 ─────────────────────────────────────────────────────────────────
-let yaw = 0, pitch = 0, locked = false;
+let yaw = 0, pitch = 0, locked = false, bgmMode = false;
 const keys      = {};
 const crosshair = document.getElementById('crosshair');
 const dbg       = document.getElementById('debug');
@@ -563,10 +564,10 @@ document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === document.body;
   crosshair.classList.toggle('show', locked && displayMode < 2);
   if (locked) {
-    // ゲーム開始時にキー状態をリセット（タイトル画面でのキー押しっぱなし防止）
+    bgmMode = false;
     Object.keys(keys).forEach(k => { keys[k] = false; });
     overlay.classList.add('hidden');
-  } else {
+  } else if (!bgmMode) {
     overlay.classList.remove('hidden');
   }
 });
@@ -582,6 +583,15 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Escape' && locked) document.exitPointerLock();
   if (e.code === 'Space') {
     e.preventDefault();
+  }
+  if (e.code === 'KeyX' && !e.repeat) {
+    if (locked) {
+      bgmMode = true;
+      document.exitPointerLock();
+    } else if (gameStartTime !== null) {
+      bgmMode = true;
+      overlay.classList.add('hidden');
+    }
   }
   if (e.code === 'KeyY' && !e.repeat) {
     if (connectingEl.style.display === 'block') confirmTrack();
@@ -839,6 +849,13 @@ const startBtn = document.getElementById('start-btn');
 
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('mousedown', e => {
+  if (bgmMode && !locked) {
+    bgmMode = false;
+    audioCtx.resume();
+    const p = document.body.requestPointerLock();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
+    return;
+  }
   if (e.button === 2 && locked) document.exitPointerLock();
 });
 
@@ -885,7 +902,7 @@ function stopScrollHold() {
 }
 
 function updateMovement() {
-  if (!locked) return;
+  if (!locked && !bgmMode) return;
   const now = performance.now();
   const dt  = Math.min((now - t0) / 1000, 0.05);
   t0 = now;
