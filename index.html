@@ -580,7 +580,6 @@ document.addEventListener('mousemove', e => {
 window.addEventListener('keydown', e => {
   if (locked) keys[e.code] = true;  // ゲーム中のみ記録
   if (e.code === 'Escape' && locked) document.exitPointerLock();
-  if (e.code === 'Escape' && !locked && gameStartTime !== null) document.body.requestPointerLock();
   if (e.code === 'Space') {
     e.preventDefault();
   }
@@ -600,6 +599,7 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => {
   keys[e.code] = false;
   if (e.code === 'ArrowUp' || e.code === 'ArrowDown') stopScrollHold();
+  if (e.code === 'Escape' && !locked && gameStartTime !== null) document.body.requestPointerLock();
 });
 
 // ── 岩 ───────────────────────────────────────────────────────────────────
