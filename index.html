@@ -566,7 +566,7 @@ document.addEventListener('mousemove', e => {
   yaw   -= e.movementX * 0.002;
   pitch -= e.movementY * 0.002;
   pitch  = Math.max(-1.3, Math.min(1.3, pitch));
-  camera.rotation.set(pitch, yaw, 0);
+  camera.rotation.set(pitch + pitchShake, yaw, 0);
 });
 window.addEventListener('keydown', e => {
   keys[e.code] = true;
@@ -853,7 +853,7 @@ startBtn.addEventListener('click', () => {
 // ── 移動ループ ────────────────────────────────────────────────────────────
 const _f = new THREE.Vector3(), _r = new THREE.Vector3();
 let t0 = performance.now();
-let shakeT = 0, shakeIntensity = 0;
+let shakePhase = 0, pitchShake = 0, shakeT0 = performance.now();
 
 function updateMovement() {
   if (!locked) return;
@@ -1014,14 +1014,22 @@ function animate() {
   }
   extDesertPlane.position.x = camera.position.x;
 
-  // 石ころエリア高速走行の縦揺れ
+  // 石ころエリア高速走行：1秒で5度上昇→1秒で復帰を繰り返すピッチ揺れ
   {
+    const now2 = performance.now();
+    const dt2 = Math.min((now2 - shakeT0) / 1000, 0.05);
+    shakeT0 = now2;
     const onRocks = Math.abs(camera.position.x) > 2.1;
     const speedKmh = cruiseSpeed / MAX_CRUISE * 120;
-    const active = onRocks && speedKmh >= 80;
-    shakeIntensity += ((active ? 1 : 0) - shakeIntensity) * 0.15;
-    shakeT += 0.11; // ~17Hz
-    camera.position.y = 0.27 + shakeIntensity * 0.07 * Math.sin(shakeT);
+    if (onRocks && speedKmh >= 80) {
+      shakePhase = (shakePhase + dt2) % 2;
+      pitchShake = -(5 * Math.PI / 180) * (1 - Math.cos(Math.PI * shakePhase)) / 2;
+    } else {
+      shakePhase = 0;
+      pitchShake *= 0.85;
+    }
+    camera.position.y = 0.27;
+    camera.rotation.set(pitch + pitchShake, yaw, 0);
   }
 
   // 空グラデーション遷移
