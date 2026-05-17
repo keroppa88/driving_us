@@ -63,12 +63,12 @@
     text-shadow: 0 0 4px #000;
   }
   #overlay-body { width: fit-content; display: flex; flex-direction: column; align-items: center; }
-  .controls { margin: 0.8em 0; display: table; }
+  .controls { margin: 0.8em 0; display: table; border: 1px solid #444; border-radius: 4px; border-spacing: 0; padding: 0.4em 0.6em; }
   .ctrl-row {
     display: table-row;
     font-size: 0.84rem; font-family: monospace; color: #ccc;
   }
-  .ctrl-key  { display: table-cell; text-align: right; padding: 0.1em 0.3em 0.1em 0; color: #e0e0e0; white-space: nowrap; }
+  .ctrl-key  { display: table-cell; text-align: center; padding: 0.1em 0.3em 0.1em 0; color: #e0e0e0; white-space: nowrap; }
   .ctrl-sep  { display: table-cell; text-align: center; padding: 0.1em 0.2em; color: #666; }
   .ctrl-desc { display: table-cell; text-align: left;  padding: 0.1em 0 0.1em 0.3em; color: #aaa; white-space: nowrap; }
 </style>
@@ -90,7 +90,7 @@
     <div class="ctrl-row"><span class="ctrl-key">←→</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music、巻き戻し・早送り</span></div>
     <div class="ctrl-row"><span class="ctrl-key">Y</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music、再生・停止</span></div>
     <div class="ctrl-row"><span class="ctrl-key">A</span><span class="ctrl-sep">/</span><span class="ctrl-desc">Music表記、表示・非表示</span></div>
-    <div class="ctrl-row"><span class="ctrl-key">ESC</span><span class="ctrl-sep">/</span><span class="ctrl-desc">ゲーム中断、タイトル・操作説明画面</span></div>
+    <div class="ctrl-row"><span class="ctrl-key">ESC</span><span class="ctrl-sep">/</span><span class="ctrl-desc">中断、タイトル・操作説明</span></div>
   </div>
 
   <label id="autopilot-label"><input type="checkbox" id="autopilot-chk"> オートパイロット</label>
