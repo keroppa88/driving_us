@@ -19,11 +19,11 @@
     background: rgba(0,0,0,0.7); z-index: 10; color: #fff; font-family: sans-serif;
   }
   #overlay.hidden { display: none; }
-  #overlay h1 { font-size: 2rem; margin-bottom: 0.5em; }
+  #overlay h1 { font-size: 2.6rem; margin-bottom: 0.5em; }
   #overlay p { color: #aaa; font-size: 0.9rem; margin: 0.2em 0; }
   #autopilot-label { margin-top: 1em; font-size: 0.85rem; color: #bbb; cursor: pointer; user-select: none; }
   #autopilot-label input { accent-color: #aaa; cursor: pointer; }
-  .vol-section { margin-top: 1.2em; width: 280px; text-align: center; }
+  .vol-section { margin-top: 1.2em; width: 270px; text-align: center; }
   .vol-section h2 { font-size: 0.8rem; color: #888; margin: 0 0 0.5em; letter-spacing: 0.05em; }
   .vol-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.5em; }
   .vol-row label { color: #bbb; font-size: 0.82rem; width: 90px; text-align: right; white-space: nowrap; }
@@ -62,7 +62,8 @@
     pointer-events: none; z-index: 5;
     text-shadow: 0 0 4px #000;
   }
-  .controls { margin: 0.8em 0; display: table; margin-left: auto; margin-right: auto; transform: translateX(2em); }
+  #overlay-body { width: fit-content; }
+  .controls { margin: 0.8em 0; display: table; }
   .ctrl-row {
     display: table-row;
     font-size: 0.84rem; font-family: monospace; color: #ccc;
@@ -80,6 +81,7 @@
 
 <div id="overlay">
   <h1>Driving in the USA</h1>
+  <div id="overlay-body">
   <div class="controls">
     <div class="ctrl-row"><span class="ctrl-key">マウス</span><span class="ctrl-sep">/</span><span class="ctrl-desc">視点移動、進行方向</span></div>
     <div class="ctrl-row"><span class="ctrl-key">Space</span><span class="ctrl-sep">/</span><span class="ctrl-desc">アクセル（離すと速度維持）</span></div>
@@ -108,8 +110,9 @@
     <div id="now-playing"></div>
   </div>
 
-  <div id="audio-loading" style="margin-top:0.8em;font-size:0.85rem;color:#aaa;">読み込み中・・・</div>
-  <button id="start-btn" disabled style="opacity:0.4;cursor:default;">DRIVE START</button>
+  <div id="audio-loading" style="margin-top:0.8em;font-size:0.85rem;color:#aaa;text-align:center;">読み込み中・・・</div>
+  <button id="start-btn" disabled style="opacity:0.4;cursor:default;display:block;margin:1.2em auto 0;">DRIVE START</button>
+  </div><!-- /overlay-body -->
 </div>
 
 <!-- YouTube プレイヤー（画面外） -->
