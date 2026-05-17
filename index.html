@@ -599,7 +599,11 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => {
   keys[e.code] = false;
   if (e.code === 'ArrowUp' || e.code === 'ArrowDown') stopScrollHold();
-  if (e.code === 'Escape' && !locked && gameStartTime !== null) document.body.requestPointerLock();
+  if (e.code === 'Escape' && !locked && gameStartTime !== null) {
+    audioCtx.resume();
+    const p = document.body.requestPointerLock();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
+  }
 });
 
 // ── 岩 ───────────────────────────────────────────────────────────────────
