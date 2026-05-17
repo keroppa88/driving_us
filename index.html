@@ -556,6 +556,8 @@ document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === document.body;
   crosshair.classList.toggle('show', locked && displayMode < 2);
   if (locked) {
+    // ゲーム開始時にキー状態をリセット（タイトル画面でのキー押しっぱなし防止）
+    Object.keys(keys).forEach(k => { keys[k] = false; });
     overlay.classList.add('hidden');
   } else {
     overlay.classList.remove('hidden');
