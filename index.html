@@ -928,7 +928,7 @@ function updateMovement() {
   updateCruiseBgm();
 
   let mz = (keys.KeyS ? 1 : 0) - (keys.KeyW ? 1 : 0);
-  let mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
+  let mx = (keys.KeyD ? 1 : 0);
   if (gp) {
     if (Math.abs(gp.axes[0]) > 0.12) mx += gp.axes[0];
     if (Math.abs(gp.axes[1]) > 0.12) mz += gp.axes[1];
