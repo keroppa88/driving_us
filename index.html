@@ -580,6 +580,7 @@ document.addEventListener('mousemove', e => {
 window.addEventListener('keydown', e => {
   if (locked) keys[e.code] = true;  // ゲーム中のみ記録
   if (e.code === 'Escape' && locked) document.exitPointerLock();
+  if (e.code === 'Escape' && !locked && gameStartTime !== null) document.body.requestPointerLock();
   if (e.code === 'Space') {
     e.preventDefault();
   }
