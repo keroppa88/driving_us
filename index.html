@@ -853,6 +853,7 @@ startBtn.addEventListener('click', () => {
 // ── 移動ループ ────────────────────────────────────────────────────────────
 const _f = new THREE.Vector3(), _r = new THREE.Vector3();
 let t0 = performance.now();
+let shakeT = 0, shakeIntensity = 0;
 
 function updateMovement() {
   if (!locked) return;
@@ -1012,6 +1013,17 @@ function animate() {
     ring.position.z = camera.position.z;
   }
   extDesertPlane.position.x = camera.position.x;
+
+  // 石ころエリア高速走行の縦揺れ
+  {
+    const onRocks = Math.abs(camera.position.x) > 2.1;
+    const speedKmh = cruiseSpeed / MAX_CRUISE * 120;
+    const active = onRocks && speedKmh >= 80;
+    shakeIntensity += ((active ? 1 : 0) - shakeIntensity) * 0.1;
+    shakeT += 0.063; // ~10Hz
+    camera.position.y = 0.27 + shakeIntensity * 0.018 * Math.sin(shakeT);
+  }
+
   // 空グラデーション遷移
   const sp = 0.025;
   skyUniforms.topColor.value.lerp(skyTopTarget, sp);
