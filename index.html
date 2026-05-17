@@ -923,8 +923,9 @@ function updateMovement() {
   const running = keys.ShiftLeft || keys.ShiftRight;
   const spd = running ? RUN_SPEED : WALK_SPEED;
 
-  _f.set(0,0,-1).applyQuaternion(camera.quaternion); _f.y=0; _f.normalize();
-  _r.set(1,0, 0).applyQuaternion(camera.quaternion); _r.y=0; _r.normalize();
+  // 進行方向はyawのみ（pitchEffect/rollEffectの影響を除外）
+  _f.set(-Math.sin(yaw), 0, -Math.cos(yaw));
+  _r.set( Math.cos(yaw), 0, -Math.sin(yaw));
 
   // アクセル自動前進
   if (cruiseSpeed > 0) {
