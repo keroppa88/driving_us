@@ -571,7 +571,7 @@ document.addEventListener('mousemove', e => {
   camera.rotation.set(pitch + pitchShake, yaw, 0);
 });
 window.addEventListener('keydown', e => {
-  keys[e.code] = true;
+  if (locked) keys[e.code] = true;  // ゲーム中のみ記録
   if (e.code === 'Escape' && locked) document.exitPointerLock();
   if (e.code === 'Space') {
     e.preventDefault();
