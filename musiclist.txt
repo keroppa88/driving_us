@@ -22,6 +22,7 @@ https://stream.zeno.fm/g372rxef798uv 「Radio,India/Retro Bollywood」
 https://radio.avazfarsi.com:8000/radio.mp3「Radio,Iran(USA)/Radio AvazFarsi」
 https://classic-radio.stream.laut.fm/classic-radio 「Radio,Deutsch/Classic Radio」
 https://media-ssl.musicradio.com/ClassicFM 「Radio,UK/Classic FM」
+
 Music
 https://www.youtube.com/watch?v=KaFtsqU2V6U	　「Nat King Cole,Too Young (1951)」	#0099ff
 https://www.youtube.com/watch?v=purfXvu24Ps	　「Chet Baker,You Don't Know What Love Is (1953)」	
@@ -46,7 +47,7 @@ https://www.youtube.com/watch?v=j5RuCEhHcG4	　「John Lennon,Woman Is The Nigge
 https://www.youtube.com/watch?v=y1KP9qhC_78	　「ちあきなおみ,喝采 (1972)」	
 https://www.youtube.com/watch?v=5igDtWadYms	　「Eagles,Take it Easy (1972)」	#0099ff　地平線#33ccff
 https://www.youtube.com/watch?v=UQ01tkS8nhU	　「Stephen Stills,Song of Love (1972)」	#0099ff
-https://www.youtube.com/watch?v=t365MuktYQs	　「David Bowie,Starman (1972)」	
+https://www.youtube.com/watch?v=t365MuktYQs	　「David Bowie,Starman (1972)」#000000　星
 https://www.youtube.com/watch?v=3mIbWMIGkMM	　「三善英史,雨 (1972)」	　#4fabe0　地平線#edd9a8　雨
 https://www.youtube.com/watch?v=F8NKmP-ptfQ	　「Elton John,The Ballad Of Danny Bailey (1909-1934) (1973)」	
 https://www.youtube.com/watch?v=oWOaVLn-vB4	　「中村雅俊,ふれあい (1973)」	
@@ -68,7 +69,7 @@ https://www.youtube.com/watch?v=2T7TXVtGGFc	　「Yellow Magic Orchestra, Tong P
 https://www.youtube.com/watch?v=WGU_4-5RaxU	　「Blondie,Heart Of Glass (1978)」	#0099ff
 https://www.youtube.com/watch?v=Fo6aKnRnBxM	　「Gerry Rafferty,Baker Street(1978)」	
 https://www.youtube.com/watch?v=rpuPCcw-cDU	　「CHIC,I Want Your Love(1978)」	
-https://www.youtube.com/watch?v=YSOACab2t7k	　「 Kate Bush,Moving(1978)」	
+https://www.youtube.com/watch?v=YSOACab2t7k	　「Kate Bush,Moving(1978)」	
 https://www.youtube.com/watch?v=I248-SyRDnU	　「Bee Gees,Tragedy (1979)」	
 https://www.youtube.com/watch?v=9PnXcP8ZI7M	　「Christopher Cross,Sailing (1979)」	
 https://www.youtube.com/watch?v=LrjHz5hrupA	　「Elvis Costello & The Attractions,Oliver's Army (1979)」	
@@ -76,7 +77,7 @@ https://www.youtube.com/watch?v=W8r-tXRLazs	　「The Buggles,Video Killed The R
 https://www.youtube.com/watch?v=Ht2EjtUgbRU	　「沢田研二,カサブランカ・ダンディ (1979)」	#993300
 https://www.youtube.com/watch?v=nuU2YHtxMik	　「松原みき,真夜中のドア〜stay with me (1979)」	#000000　単色　星　地平線#fa9e00
 https://www.youtube.com/watch?v=QzMk7a_bi5w	　「水谷豊,カリフォルニア・コネクション (1979)」	
-https://www.youtube.com/watch?v=uTqUiqszKAg	　「ゴダイゴ,銀河鉄道999 (1979)」	#020008　星　地平線#ffd1fa
+https://www.youtube.com/watch?v=uTqUiqszKAg	　「ゴダイゴ,銀河鉄道999 (1979)」	#000000　星　地平線#ffd1fa
 https://www.youtube.com/watch?v=cLi8fTlDEag	　「Olivia Newton-John,Xanadu (1980)」	#ff9900　地平線#de33ca
 https://www.youtube.com/watch?v=l37pDbFNcT0	　「Olivia Newton-John,magic (1980)」	#330066　星 音量+15%　地平線#3b0d5e
 https://www.youtube.com/watch?v=bULzrmJ0FMU	　「岡田奈々,静舞 (1980)」	#66ff00
@@ -201,4 +202,6 @@ https://www.youtube.com/watch?v=pygwK0sBUdM	　「坂本龍一,andata (2017)」	
 https://www.youtube.com/watch?v=iboM79ANVuo	　「KIRINJI,AIの逃避行 feat. Charisma.com (2018)」	#6600cc　星　地平線#76cfb1
 https://www.youtube.com/watch?v=2fD9TBKHAdE	　「Cyberpunk 2077,Militech Combat Theme (2020)」	
 https://www.youtube.com/watch?v=fzGaTj0LdeM	　「KIRINJI,薄明 feat. Maika Loubté (2021)」	#cc6633　地平線#ff9900
+
+
 
