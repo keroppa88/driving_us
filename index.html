@@ -677,54 +677,73 @@ function addExtendedDesert() {
 const extDesertPlane = addExtendedDesert();
 
 // ── トラフィックカー ────────────────────────────────────────────────────────
-let car01 = null, car01Active = false;
-let car01GainedDist = -30; // 負値=車が前方。0で並走、正値=プレイヤーが先行
-const CAR01_SPEED = MAX_CRUISE / 2;
-const CAR01_SPAWN_OFFSET = -30; // スポーン時のプレイヤー前方距離
-const CAR01_SPAWN_X = -1.17; // 右車線（オートパイロットと同じ）
+const CAR_SPEED = MAX_CRUISE / 2;
+const CAR_SPAWN_OFFSET = -30;
+const CAR_SPAWN_X = -1.17;
 
-new GLTFLoader().load('car01.glb?v=' + Date.now(), gltf => {
-  const m = gltf.scene;
-  m.traverse(child => {
-    if (!child.isMesh) return;
-    child.frustumCulled = false;
-    const fix = mat => {
-      if (!mat) return;
-      mat.transparent = false; mat.opacity = 1; mat.depthWrite = true;
-      mat.needsUpdate = true;
-    };
-    Array.isArray(child.material) ? child.material.forEach(fix) : fix(child.material);
-  });
-  m.scale.set(0.4, 0.4, 0.4);
-  m.visible = false;
-  scene.add(m);
-  car01 = m;
-}, null, err => console.warn('[car01] 読み込み失敗:', err));
-
-function updateCar01(dt) {
-  if (!car01) return;
-  // 15秒後にスポーン
-  if (!car01Active && gameStartTime !== null &&
-      (performance.now() - gameStartTime) >= 15000) {
-    car01.position.set(CAR01_SPAWN_X, 0, camera.position.z + CAR01_SPAWN_OFFSET);
-    car01.visible = true;
-    car01Active = true;
-    car01GainedDist = CAR01_SPAWN_OFFSET; // -30（車が前方30単位）
-  }
-  if (!car01Active) return;
-
-  // プレイヤーとの相対ゲイン（位置ループに依存しない速度ベース計算）
-  car01GainedDist += (cruiseSpeed - CAR01_SPEED) * dt;
-  if (car01GainedDist >= LOOP_LENGTH) {
-    // 1MAP分リードしたら消滅
-    car01.visible = false;
-    car01Active = false;
-    return;
-  }
-
-  car01.position.z -= CAR01_SPEED * dt;
-  if (car01.position.z <= PLAY_Z_MIN) car01.position.z += LOOP_LENGTH;
+function loadTrafficCar(filename, onLoaded) {
+  new GLTFLoader().load(filename + '?v=' + Date.now(), gltf => {
+    const m = gltf.scene;
+    m.traverse(child => {
+      if (!child.isMesh) return;
+      child.frustumCulled = false;
+      const fix = mat => {
+        if (!mat) return;
+        mat.transparent = false; mat.opacity = 1; mat.depthWrite = true;
+        mat.needsUpdate = true;
+      };
+      Array.isArray(child.material) ? child.material.forEach(fix) : fix(child.material);
+    });
+    m.scale.set(0.4, 0.4, 0.4);
+    m.visible = false;
+    scene.add(m);
+    onLoaded(m);
+  }, null, err => console.warn('[' + filename + '] 読み込み失敗:', err));
 }
+
+// トラフィックカー配列（car01→car02→car03→car04 と順番に登場）
+const trafficCars = [
+  { mesh: null, active: false, done: false, gainedDist: CAR_SPAWN_OFFSET },
+  { mesh: null, active: false, done: false, gainedDist: CAR_SPAWN_OFFSET },
+  { mesh: null, active: false, done: false, gainedDist: CAR_SPAWN_OFFSET },
+  { mesh: null, active: false, done: false, gainedDist: CAR_SPAWN_OFFSET },
+];
+['car01.glb','car02.glb','car03.glb','car04.glb'].forEach((f, i) => {
+  loadTrafficCar(f, m => { trafficCars[i].mesh = m; });
+});
+
+function updateAllTrafficCars(dt) {
+  for (let i = 0; i < trafficCars.length; i++) {
+    const tc = trafficCars[i];
+    if (!tc.mesh) continue;
+
+    // スポーン判定
+    if (!tc.active && !tc.done) {
+      const prevDone = i === 0
+        ? (gameStartTime !== null && (performance.now() - gameStartTime) >= 15000) // car01: 15秒後
+        : (trafficCars[i - 1].done);                                               // car02〜: 前の車が消えたら
+      if (!prevDone) continue;
+      tc.mesh.position.set(CAR_SPAWN_X, 0, camera.position.z + CAR_SPAWN_OFFSET);
+      tc.mesh.visible = true;
+      tc.active = true;
+      tc.gainedDist = CAR_SPAWN_OFFSET;
+    }
+    if (!tc.active) continue;
+
+    // 相対ゲイン更新
+    tc.gainedDist += (cruiseSpeed - CAR_SPEED) * dt;
+    if (tc.gainedDist >= LOOP_LENGTH) {
+      tc.mesh.visible = false;
+      tc.active = false;
+      tc.done = true;
+      continue;
+    }
+    tc.mesh.position.z -= CAR_SPEED * dt;
+    if (tc.mesh.position.z <= PLAY_Z_MIN) tc.mesh.position.z += LOOP_LENGTH;
+  }
+}
+
+
 
 
 function loadSpecialModel(filename, px, py, pz) {
@@ -1117,7 +1136,7 @@ function animate() {
   const _dt = Math.min((_now - _animT0) / 1000, 0.05);
   _animT0 = _now;
   updateMovement();
-  updateCar01(_dt);
+  updateAllTrafficCars(_dt);
   for (const ring of mountainRings) {
     ring.position.x = camera.position.x;
     ring.position.z = camera.position.z;
