@@ -759,7 +759,7 @@ function updateAllTrafficCars(dt) {
     if (!tc.active && !tc.done && elapsed >= tc.spawnAt) {
       const spawnX = tc.oncoming ? ONCOMING_X : SAMEDIR_X;
       let spawnZ = camera.position.z + CAR_SPAWN_OFFSET;
-      if (spawnZ < PLAY_Z_MIN) spawnZ += LOOP_LENGTH;
+      spawnZ = Math.max(spawnZ, PLAY_Z_MIN); // 道路外にスポーンしないようクランプ
       tc.mesh.position.set(spawnX, 0, spawnZ);
       tc.mesh.rotation.y = tc.oncoming ? Math.PI : 0;
       tc.mesh.visible = true;
@@ -1091,7 +1091,7 @@ function updateMovement() {
   _r.set(1,0, 0).applyQuaternion(camera.quaternion); _r.y=0; _r.normalize();
 
   const autoPilot = document.getElementById('autopilot-chk').checked;
-  const AP_TARGET_X = -1.17; // 右車線中央寄り（仮）
+  const AP_TARGET_X = 1.17; // 左車線
 
   // アクセル自動前進
   if (cruiseSpeed > 0) {
