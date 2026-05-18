@@ -78,6 +78,7 @@
 
 > <img width="300" height="320" alt="image" src="https://github.com/user-attachments/assets/4fbee28e-7c48-4b03-8076-ec77f5b4bdf4" />
  
+<img width="300" height="200" alt="593546826-fcb7e5aa-028e-4746-9535-51f010ee789b" src="https://github.com/user-attachments/assets/8b117383-fa22-407b-a893-bf62496e2b7b" />
 
 ## インストール
 * ウェブのブラウザでプレイできる。
@@ -144,7 +145,8 @@
 |-----------|--------|
 | 3 | sa02 青い看板 |
 | 8 | sa03 黄色い看板 |
-| 17 | sa06 シェルガソリンスタンド |
+| 17 | sa06 シェルガソリンスタンド |<img width="683" height="475" alt="593546826-fcb7e5aa-028e-4746-9535-51f010ee789b" src="https://github.com/user-attachments/assets/a048a5e2-cbbb-401f-a75d-700254dce8a1" />
+
 | 26 | sa03 黄色い看板 |
 | 35 | sa05 マルボロ看板 |
 | 44 | sa02 青い看板 |
