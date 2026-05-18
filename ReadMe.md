@@ -5,6 +5,8 @@
 
 > <img width="300" height="280" alt="image" src="https://github.com/user-attachments/assets/ab0481bf-4cc4-4d1e-b128-5d759726112a" />
 
+<img width="300" height="255" alt="image" src="https://github.com/user-attachments/assets/f2beb8f8-d07c-4eea-8a6b-a3c9ef0b3951" />
+
   
 ### アメリカの砂漠道路を走りながら音楽を楽しむ雰囲気系ゲーム。
 * スタン・ハンセン、テリーマン、イージーライダー、西部劇、、、アメリカ西部の砂漠を走るイメージ。
