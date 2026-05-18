@@ -161,6 +161,7 @@ let model05 = null, model05Copy = null;
 let model06 = null, model06Copy = null;
 let model07 = null, model07Copy = null;
 let model08 = null, model08Copy = null;
+let model09 = null, model09Copy = null;
 let gameStartTime = null;
 let totalPausedMs = 0;
 let pauseStartTime = null;
@@ -175,9 +176,9 @@ const LOOP_SEQUENCE = [
   'sa01','sa01','sa01','sa02','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa06',
   'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa05',
   'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa02','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa04',
-  'sa01','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa01','sa01','sa02','sa01','sa01','sa01','sa01','sa07',
-  'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa08',
-  'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01',
+  'sa01','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa01','sa01','sa02','sa01','sa01','sa01','sa01','sa01',
+  'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa07',
+  'sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa09','sa01','sa01','sa01','sa01','sa01','sa01',
 ];
 
 // ── レンダラー ────────────────────────────────────────────────────────────
@@ -874,6 +875,7 @@ function setMainModel(key) {
   if (model06)     model06.visible     = (key === 'sa06');
   if (model07)     model07.visible     = (key === 'sa07');
   if (model08)     model08.visible     = (key === 'sa08');
+  if (model09)     model09.visible     = (key === 'sa09');
   // ゾーン岩の表示切替（複数ゾーン重複対応）
   for (const [rock, zones] of zoneRocks) {
     rock.visible = !zones.has(key);
@@ -889,6 +891,7 @@ function setCopyModel(key) {
   if (model06Copy)  model06Copy.visible  = (key === 'sa06');
   if (model07Copy)  model07Copy.visible  = (key === 'sa07');
   if (model08Copy)  model08Copy.visible  = (key === 'sa08');
+  if (model09Copy)  model09Copy.visible  = (key === 'sa09');
 }
 
 function resolveSeq(idx) {
@@ -900,6 +903,7 @@ function resolveSeq(idx) {
   if (key === 'sa06' && !model06) return 'sa01';
   if (key === 'sa07' && !model07) return 'sa01';
   if (key === 'sa08' && !model08) return 'sa01';
+  if (key === 'sa09' && !model09) return 'sa01';
   return key;
 }
 
@@ -979,10 +983,13 @@ new GLTFLoader().load('sa01.glb?v=' + Date.now(), gltf => {
   loadSpecialModel('sa07.glb', _spx, _spy, _spz).then(r => {
     if (r) { model07 = r.main; model07Copy = r.copy; console.log('[sa07] loaded'); }
   });
-  // sa08はゲーム開始後に裏読み（音声と競合しないよう遅延）
+  // sa08・sa09はゲーム開始後に裏読み（音声と競合しないよう遅延）
   startBtn.addEventListener('click', () => {
     loadSpecialModel('sa08.glb', _spx, _spy, _spz).then(r => {
       if (r) { model08 = r.main; model08Copy = r.copy; console.log('[sa08] loaded'); }
+    });
+    loadSpecialModel('sa09.glb', _spx, _spy, _spz).then(r => {
+      if (r) { model09 = r.main; model09Copy = r.copy; console.log('[sa09] loaded'); }
     });
   }, { once: true });
 
