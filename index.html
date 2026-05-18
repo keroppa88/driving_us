@@ -726,16 +726,8 @@ function updateAllTrafficCars(dt) {
   for (let i = 0; i < trafficCars.length; i++) {
     const tc = trafficCars[i];
 
-    // glb未ロード：前の車がdoneになったら即done扱いでチェーンを進める
-    if (!tc.mesh) {
-      if (!tc.done) {
-        const prevDone = i === 0
-          ? (gameStartTime !== null && (performance.now() - gameStartTime) >= 15000)
-          : trafficCars[i - 1].done;
-        if (prevDone) tc.done = true;
-      }
-      continue;
-    }
+    // glb未ロード中はスキップ（ロード完了まで待つ）
+    if (!tc.mesh) continue;
 
     // スポーン判定
     if (!tc.active && !tc.done) {
