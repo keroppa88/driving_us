@@ -164,6 +164,7 @@ let model08 = null, model08Copy = null;
 let gameStartTime = null;
 let totalPausedMs = 0;
 let pauseStartTime = null;
+let cycleStartElapsed = 0; // 現在サイクル開始時の経過時間(ms)
 function getElapsedMs() {
   if (!gameStartTime) return 0;
   const cur = pauseStartTime ? (performance.now() - pauseStartTime) : 0;
@@ -694,6 +695,7 @@ const CAR_SPAWN_OFFSET     = -100;                       // プレイヤー前�
 const CAR_SPAWN_OFFSET_ABS =  100;                       // スポーンオフセット絶対値
 const SAMEDIR_EXIT_DIST    = CAR_SPAWN_OFFSET_ABS + LOOP_LENGTH / 2; // 追い抜き後消滅距離(=217)
 const SAMEDIR_LIFETIME_MS  = 180000;                     // 同方向車最大生存時間(3分)
+const CYCLE_DURATION_MS    = 35 * 60 * 1000;             // スケジュールサイクル(35分)
 const ONCOMING_X =  1.17;     // 対向車線（左）
 const SAMEDIR_X  = -1.17;     // 同方向車線（右・プレイヤーと同じ）
 
@@ -757,10 +759,19 @@ function updateAllTrafficCars(dt) {
   if (!gameStartTime) return;
   const elapsed = getElapsedMs();
 
+  // 35分サイクルのループ処理
+  let cycleElapsed = elapsed - cycleStartElapsed;
+  if (cycleElapsed >= CYCLE_DURATION_MS) {
+    cycleStartElapsed += CYCLE_DURATION_MS;
+    cycleElapsed -= CYCLE_DURATION_MS;
+    resetTrafficCars();
+    return; // 次フレームから新サイクル開始
+  }
+
   for (const tc of trafficCars) {
     if (!tc.mesh) continue;
 
-    if (!tc.active && !tc.done && elapsed >= tc.spawnAt) {
+    if (!tc.active && !tc.done && cycleElapsed >= tc.spawnAt) {
       const spawnX = tc.oncoming ? ONCOMING_X : SAMEDIR_X;
       let spawnZ = camera.position.z + CAR_SPAWN_OFFSET;
       if (tc.oncoming) {
@@ -772,13 +783,13 @@ function updateAllTrafficCars(dt) {
       tc.mesh.rotation.y = tc.oncoming ? Math.PI : 0;
       tc.mesh.visible = true;
       tc.active = true;
-      tc.spawnElapsed = elapsed;
+      tc.spawnElapsed = cycleElapsed; // サイクル内経過時間で記録
       tc.relDist = 0;
     }
     if (!tc.active) continue;
 
     // 時間による消滅（対向車は30秒、同方向車は3分）
-    if (elapsed - tc.spawnElapsed >= tc.lifetime) {
+    if (cycleElapsed - tc.spawnElapsed >= tc.lifetime) {
       tc.mesh.visible = false;
       tc.active = false;
       tc.done = true;
@@ -1006,10 +1017,11 @@ loadPlaylist().then(() => initYTPlayer()).catch(console.error);
 
 startBtn.addEventListener('click', () => {
   audioCtx.resume();
-  if (gameStartTime === null || trafficCars.every(tc => tc.done)) {
+  if (gameStartTime === null) {
     gameStartTime = performance.now();
     totalPausedMs = 0;
     pauseStartTime = null;
+    cycleStartElapsed = 0;
     resetTrafficCars();
   }
   const p = document.body.requestPointerLock();
