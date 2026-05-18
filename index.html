@@ -743,7 +743,10 @@ function updateAllTrafficCars(dt) {
         ? (gameStartTime !== null && (performance.now() - gameStartTime) >= 15000)
         : trafficCars[i - 1].done;
       if (!prevDone) continue;
-      tc.mesh.position.set(CAR_SPAWN_X, 0, camera.position.z + CAR_SPAWN_OFFSET);
+      let spawnZ = camera.position.z + CAR_SPAWN_OFFSET;
+      if (spawnZ < PLAY_Z_MIN) spawnZ += LOOP_LENGTH;
+      tc.mesh.position.set(CAR_SPAWN_X, 0, spawnZ);
+      tc.mesh.rotation.y = Math.PI; // 対向方向（プレイヤー側を向く）
       tc.mesh.visible = true;
       tc.active = true;
       tc.spawnTime = performance.now();
