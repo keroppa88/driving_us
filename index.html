@@ -162,6 +162,13 @@ let model06 = null, model06Copy = null;
 let model07 = null, model07Copy = null;
 let model08 = null, model08Copy = null;
 let gameStartTime = null;
+let totalPausedMs = 0;
+let pauseStartTime = null;
+function getElapsedMs() {
+  if (!gameStartTime) return 0;
+  const cur = pauseStartTime ? (performance.now() - pauseStartTime) : 0;
+  return performance.now() - gameStartTime - totalPausedMs - cur;
+}
 let loopCount = 0;
 const LOOP_SEQUENCE = [
   'sa01','sa01','sa01','sa02','sa01','sa01','sa01','sa01','sa03','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa01','sa06',
@@ -564,10 +571,15 @@ document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === document.body;
   crosshair.classList.toggle('show', locked && displayMode < 2);
   if (locked) {
+    if (pauseStartTime !== null) {
+      totalPausedMs += performance.now() - pauseStartTime;
+      pauseStartTime = null;
+    }
     bgmMode = false;
     Object.keys(keys).forEach(k => { keys[k] = false; });
     overlay.classList.add('hidden');
   } else if (!bgmMode) {
+    if (gameStartTime !== null) pauseStartTime = performance.now();
     overlay.classList.remove('hidden');
   }
 });
@@ -678,9 +690,9 @@ const extDesertPlane = addExtendedDesert();
 
 // ── トラフィックカー ────────────────────────────────────────────────────────
 const CAR_SPEED = MAX_CRUISE / 2;
-const CAR_SPAWN_OFFSET = -100; // プレイヤー前方100単位（対向車として手前へ向かってくる）
-const CAR_SPAWN_X = 1.17;     // 左車線（対向車線）
-const CAR_LIFETIME_MS = 30000; // 登場後30秒で消滅
+const CAR_SPAWN_OFFSET = -100; // プレイヤー前方100単位
+const ONCOMING_X =  1.17;     // 対向車線（左）
+const SAMEDIR_X  = -1.17;     // 同方向車線（右・プレイヤーと同じ）
 
 function loadTrafficCar(filename, onLoaded) {
   new GLTFLoader().load(filename + '?v=' + Date.now(), gltf => {
@@ -702,15 +714,29 @@ function loadTrafficCar(filename, onLoaded) {
   }, null, err => console.warn('[' + filename + '] 読み込み失敗:', err));
 }
 
-// トラフィックカースケジュール（ゲーム開始からの絶対時間）
-// spawnAt: 登場タイミング(ms)、lifetime: 表示時間(ms)
+// スケジュール: spawnAt=経過ms, lifetime=表示ms, oncoming=対向車フラグ
+// oncoming=true : 対向車（ONCOMING_X・180度回転・+Z移動）
+// oncoming=false: 同方向（SAMEDIR_X・0度・-Z移動）
 const trafficCars = [
-  { mesh: null, active: false, done: false, spawnTime: 0, spawnAt:  15000, lifetime: 5000 }, // car01: 15秒後・5秒
-  { mesh: null, active: false, done: false, spawnTime: 0, spawnAt:  30000, lifetime: 5000 }, // car02: 30秒後・5秒
-  { mesh: null, active: false, done: false, spawnTime: 0, spawnAt:  60000, lifetime: 5000 }, // car03: 60秒後・5秒
-  { mesh: null, active: false, done: false, spawnTime: 0, spawnAt:  90000, lifetime: 5000 }, // car04: 90秒後・5秒
+  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:     30*1000, lifetime: 30000, oncoming: true  }, //  30秒: 対向車 car01
+  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:    300*1000, lifetime: 30000, oncoming: true  }, //  5分: 対向車 car04
+  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:    600*1000, lifetime: 30000, oncoming: false }, // 10分: 同方向 car01
+  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:    900*1000, lifetime: 30000, oncoming: false }, // 15分: 同方向 car02
+  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:   1200*1000, lifetime: 30000, oncoming: true  }, // 20分: 対向車 car03
+  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:   1500*1000, lifetime: 30000, oncoming: true  }, // 25分: 対向車 car02
+  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:   1680*1000, lifetime: 30000, oncoming: false }, // 28分: 同方向 car03
+  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:   1800*1000, lifetime: 30000, oncoming: false }, // 30分: 同方向 car04
 ];
-['car01.glb','car02.glb','car03.glb','car04.glb'].forEach((f, i) => {
+[
+  'car01.glb', // [0]  30秒 対向車
+  'car04.glb', // [1]  5分  対向車
+  'car01.glb', // [2] 10分  同方向（car01の2回目ロード）
+  'car02.glb', // [3] 15分  同方向
+  'car03.glb', // [4] 20分  対向車
+  'car02.glb', // [5] 25分  対向車（car02の2回目ロード）
+  'car03.glb', // [6] 28分  同方向（car03の2回目ロード）
+  'car04.glb', // [7] 30分  同方向（car04の2回目ロード）
+].forEach((f, i) => {
   loadTrafficCar(f, m => { trafficCars[i].mesh = m; });
 });
 
@@ -718,39 +744,43 @@ function resetTrafficCars() {
   trafficCars.forEach(tc => {
     tc.active = false;
     tc.done = false;
-    tc.spawnTime = 0;
+    tc.spawnElapsed = 0;
     if (tc.mesh) tc.mesh.visible = false;
   });
 }
 
 function updateAllTrafficCars(dt) {
   if (!gameStartTime) return;
-  const elapsed = performance.now() - gameStartTime;
+  const elapsed = getElapsedMs();
 
   for (const tc of trafficCars) {
     if (!tc.mesh) continue;
 
-    // スポーン判定（ゲーム開始からの経過時間ベース）
     if (!tc.active && !tc.done && elapsed >= tc.spawnAt) {
+      const spawnX = tc.oncoming ? ONCOMING_X : SAMEDIR_X;
       let spawnZ = camera.position.z + CAR_SPAWN_OFFSET;
       if (spawnZ < PLAY_Z_MIN) spawnZ += LOOP_LENGTH;
-      tc.mesh.position.set(CAR_SPAWN_X, 0, spawnZ);
-      tc.mesh.rotation.y = Math.PI;
+      tc.mesh.position.set(spawnX, 0, spawnZ);
+      tc.mesh.rotation.y = tc.oncoming ? Math.PI : 0;
       tc.mesh.visible = true;
       tc.active = true;
-      tc.spawnTime = performance.now();
+      tc.spawnElapsed = elapsed;
     }
     if (!tc.active) continue;
 
-    // 登場後 lifetime ms で消滅
-    if (performance.now() - tc.spawnTime >= tc.lifetime) {
+    if (elapsed - tc.spawnElapsed >= tc.lifetime) {
       tc.mesh.visible = false;
       tc.active = false;
       tc.done = true;
       continue;
     }
-    tc.mesh.position.z += CAR_SPEED * dt;
-    if (tc.mesh.position.z >= PLAY_Z_MAX) tc.mesh.position.z -= LOOP_LENGTH;
+    if (tc.oncoming) {
+      tc.mesh.position.z += CAR_SPEED * dt;
+      if (tc.mesh.position.z >= PLAY_Z_MAX) tc.mesh.position.z -= LOOP_LENGTH;
+    } else {
+      tc.mesh.position.z -= CAR_SPEED * dt;
+      if (tc.mesh.position.z < PLAY_Z_MIN) tc.mesh.position.z += LOOP_LENGTH;
+    }
   }
 }
 
@@ -961,6 +991,8 @@ startBtn.addEventListener('click', () => {
   audioCtx.resume();
   if (gameStartTime === null || trafficCars.every(tc => tc.done)) {
     gameStartTime = performance.now();
+    totalPausedMs = 0;
+    pauseStartTime = null;
     resetTrafficCars();
   }
   const p = document.body.requestPointerLock();
