@@ -679,7 +679,8 @@ const extDesertPlane = addExtendedDesert();
 // ── トラフィックカー ────────────────────────────────────────────────────────
 const CAR_SPEED = MAX_CRUISE / 2;
 const CAR_SPAWN_OFFSET = -30;
-const CAR_SPAWN_X = -1.17;
+const CAR_SPAWN_X = 1.17;   // 逆車線（左車線）
+const CAR_LIFETIME_MS = 30000; // 登場後30秒で消滅
 
 function loadTrafficCar(filename, onLoaded) {
   new GLTFLoader().load(filename + '?v=' + Date.now(), gltf => {
@@ -703,10 +704,10 @@ function loadTrafficCar(filename, onLoaded) {
 
 // トラフィックカー配列（car01→car02→car03→car04 と順番に登場）
 const trafficCars = [
-  { mesh: null, active: false, done: false, gainedDist: CAR_SPAWN_OFFSET },
-  { mesh: null, active: false, done: false, gainedDist: CAR_SPAWN_OFFSET },
-  { mesh: null, active: false, done: false, gainedDist: CAR_SPAWN_OFFSET },
-  { mesh: null, active: false, done: false, gainedDist: CAR_SPAWN_OFFSET },
+  { mesh: null, active: false, done: false, spawnTime: 0 },
+  { mesh: null, active: false, done: false, spawnTime: 0 },
+  { mesh: null, active: false, done: false, spawnTime: 0 },
+  { mesh: null, active: false, done: false, spawnTime: 0 },
 ];
 ['car01.glb','car02.glb','car03.glb','car04.glb'].forEach((f, i) => {
   loadTrafficCar(f, m => { trafficCars[i].mesh = m; });
@@ -716,7 +717,7 @@ function resetTrafficCars() {
   trafficCars.forEach(tc => {
     tc.active = false;
     tc.done = false;
-    tc.gainedDist = CAR_SPAWN_OFFSET;
+    tc.spawnTime = 0;
     if (tc.mesh) tc.mesh.visible = false;
   });
 }
@@ -745,14 +746,12 @@ function updateAllTrafficCars(dt) {
       tc.mesh.position.set(CAR_SPAWN_X, 0, camera.position.z + CAR_SPAWN_OFFSET);
       tc.mesh.visible = true;
       tc.active = true;
-      tc.gainedDist = CAR_SPAWN_OFFSET; // 負値：まず追いつくまでカウント
+      tc.spawnTime = performance.now();
     }
     if (!tc.active) continue;
 
-    // 相対ゲイン更新（0=並走、LOOP_LENGTH=1MAP分リード → 消滅）
-    tc.gainedDist += (cruiseSpeed - CAR_SPEED) * dt;
-    // 抜いた後（gainedDist > 0）から1MAP分で消滅
-    if (tc.gainedDist >= LOOP_LENGTH) {
+    // 登場後30秒で消滅
+    if (performance.now() - tc.spawnTime >= CAR_LIFETIME_MS) {
       tc.mesh.visible = false;
       tc.active = false;
       tc.done = true;
