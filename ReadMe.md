@@ -78,7 +78,6 @@
 
 > <img width="300" height="320" alt="image" src="https://github.com/user-attachments/assets/4fbee28e-7c48-4b03-8076-ec77f5b4bdf4" />
  
-> <img width="300" height="250" alt="image" src="https://github.com/user-attachments/assets/fcb7e5aa-028e-4746-9535-51f010ee789b" />
 
 ## インストール
 * ウェブのブラウザでプレイできる。
