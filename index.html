@@ -776,10 +776,14 @@ function updateAllTrafficCars(dt) {
     }
     if (tc.oncoming) {
       tc.mesh.position.z += CAR_SPEED * dt;
-      if (tc.mesh.position.z >= PLAY_Z_MAX) tc.mesh.position.z -= LOOP_LENGTH;
+      if (tc.mesh.position.z >= PLAY_Z_MAX) {
+        tc.mesh.visible = false; tc.active = false; tc.done = true;
+      }
     } else {
       tc.mesh.position.z -= CAR_SPEED * dt;
-      if (tc.mesh.position.z < PLAY_Z_MIN) tc.mesh.position.z += LOOP_LENGTH;
+      if (tc.mesh.position.z < PLAY_Z_MIN) {
+        tc.mesh.visible = false; tc.active = false; tc.done = true;
+      }
     }
   }
 }
