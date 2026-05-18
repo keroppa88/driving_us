@@ -702,12 +702,13 @@ function loadTrafficCar(filename, onLoaded) {
   }, null, err => console.warn('[' + filename + '] 読み込み失敗:', err));
 }
 
-// トラフィックカー配列（car01→car02→car03→car04 と順番に登場）
+// トラフィックカースケジュール（ゲーム開始からの絶対時間）
+// spawnAt: 登場タイミング(ms)、lifetime: 表示時間(ms)
 const trafficCars = [
-  { mesh: null, active: false, done: false, spawnTime: 0 },
-  { mesh: null, active: false, done: false, spawnTime: 0 },
-  { mesh: null, active: false, done: false, spawnTime: 0 },
-  { mesh: null, active: false, done: false, spawnTime: 0 },
+  { mesh: null, active: false, done: false, spawnTime: 0, spawnAt:  15000, lifetime: 5000 }, // car01: 15秒後・5秒
+  { mesh: null, active: false, done: false, spawnTime: 0, spawnAt:  30000, lifetime: 5000 }, // car02: 30秒後・5秒
+  { mesh: null, active: false, done: false, spawnTime: 0, spawnAt:  60000, lifetime: 5000 }, // car03: 60秒後・5秒
+  { mesh: null, active: false, done: false, spawnTime: 0, spawnAt:  90000, lifetime: 5000 }, // car04: 90秒後・5秒
 ];
 ['car01.glb','car02.glb','car03.glb','car04.glb'].forEach((f, i) => {
   loadTrafficCar(f, m => { trafficCars[i].mesh = m; });
@@ -723,36 +724,32 @@ function resetTrafficCars() {
 }
 
 function updateAllTrafficCars(dt) {
-  for (let i = 0; i < trafficCars.length; i++) {
-    const tc = trafficCars[i];
+  if (!gameStartTime) return;
+  const elapsed = performance.now() - gameStartTime;
 
-    // glb未ロード中はスキップ（ロード完了まで待つ）
+  for (const tc of trafficCars) {
     if (!tc.mesh) continue;
 
-    // スポーン判定
-    if (!tc.active && !tc.done) {
-      const prevDone = i === 0
-        ? (gameStartTime !== null && (performance.now() - gameStartTime) >= 15000)
-        : trafficCars[i - 1].done;
-      if (!prevDone) continue;
+    // スポーン判定（ゲーム開始からの経過時間ベース）
+    if (!tc.active && !tc.done && elapsed >= tc.spawnAt) {
       let spawnZ = camera.position.z + CAR_SPAWN_OFFSET;
       if (spawnZ < PLAY_Z_MIN) spawnZ += LOOP_LENGTH;
       tc.mesh.position.set(CAR_SPAWN_X, 0, spawnZ);
-      tc.mesh.rotation.y = Math.PI; // 対向方向（プレイヤー側を向く）
+      tc.mesh.rotation.y = Math.PI;
       tc.mesh.visible = true;
       tc.active = true;
       tc.spawnTime = performance.now();
     }
     if (!tc.active) continue;
 
-    // 登場後30秒で消滅
-    if (performance.now() - tc.spawnTime >= CAR_LIFETIME_MS) {
+    // 登場後 lifetime ms で消滅
+    if (performance.now() - tc.spawnTime >= tc.lifetime) {
       tc.mesh.visible = false;
       tc.active = false;
       tc.done = true;
       continue;
     }
-    tc.mesh.position.z += CAR_SPEED * dt; // 対向車：+Z方向（プレイヤー側へ）
+    tc.mesh.position.z += CAR_SPEED * dt;
     if (tc.mesh.position.z >= PLAY_Z_MAX) tc.mesh.position.z -= LOOP_LENGTH;
   }
 }
