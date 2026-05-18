@@ -712,26 +712,46 @@ const trafficCars = [
   loadTrafficCar(f, m => { trafficCars[i].mesh = m; });
 });
 
+function resetTrafficCars() {
+  trafficCars.forEach(tc => {
+    tc.active = false;
+    tc.done = false;
+    tc.gainedDist = CAR_SPAWN_OFFSET;
+    if (tc.mesh) tc.mesh.visible = false;
+  });
+}
+
 function updateAllTrafficCars(dt) {
   for (let i = 0; i < trafficCars.length; i++) {
     const tc = trafficCars[i];
-    if (!tc.mesh) continue;
+
+    // glb未ロード：前の車がdoneになったら即done扱いでチェーンを進める
+    if (!tc.mesh) {
+      if (!tc.done) {
+        const prevDone = i === 0
+          ? (gameStartTime !== null && (performance.now() - gameStartTime) >= 15000)
+          : trafficCars[i - 1].done;
+        if (prevDone) tc.done = true;
+      }
+      continue;
+    }
 
     // スポーン判定
     if (!tc.active && !tc.done) {
       const prevDone = i === 0
-        ? (gameStartTime !== null && (performance.now() - gameStartTime) >= 15000) // car01: 15秒後
-        : (trafficCars[i - 1].done);                                               // car02〜: 前の車が消えたら
+        ? (gameStartTime !== null && (performance.now() - gameStartTime) >= 15000)
+        : trafficCars[i - 1].done;
       if (!prevDone) continue;
       tc.mesh.position.set(CAR_SPAWN_X, 0, camera.position.z + CAR_SPAWN_OFFSET);
       tc.mesh.visible = true;
       tc.active = true;
-      tc.gainedDist = CAR_SPAWN_OFFSET;
+      tc.gainedDist = CAR_SPAWN_OFFSET; // 負値：まず追いつくまでカウント
     }
     if (!tc.active) continue;
 
-    // 相対ゲイン更新
+    // 相対ゲイン更新（0=並走、LOOP_LENGTH=1MAP分リード → 消滅）
     tc.gainedDist += (cruiseSpeed - CAR_SPEED) * dt;
+    // 抜いた後（gainedDist > 0）から1MAP分で消滅
     if (tc.gainedDist >= LOOP_LENGTH) {
       tc.mesh.visible = false;
       tc.active = false;
@@ -949,6 +969,7 @@ loadPlaylist().then(() => initYTPlayer()).catch(console.error);
 startBtn.addEventListener('click', () => {
   audioCtx.resume();
   gameStartTime = performance.now();
+  resetTrafficCars();
   const p = document.body.requestPointerLock();
   if (p && typeof p.catch === 'function') p.catch(() => {});
 });
