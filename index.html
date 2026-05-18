@@ -905,6 +905,14 @@ function resolveSeq(idx) {
 
 function handleLoopTransition() {
   loopCount++;
+  // プレイヤーがループしたら対向車を強制消滅（ループ後の前方再出現を防ぐ）
+  trafficCars.forEach(tc => {
+    if (tc.active && tc.oncoming) {
+      tc.mesh.visible = false;
+      tc.active = false;
+      tc.done = true;
+    }
+  });
   const cur  = resolveSeq(loopCount);
   const next = resolveSeq(loopCount + 1);
   setMainModel(cur);
