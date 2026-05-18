@@ -678,8 +678,8 @@ const extDesertPlane = addExtendedDesert();
 
 // ── トラフィックカー ────────────────────────────────────────────────────────
 const CAR_SPEED = MAX_CRUISE / 2;
-const CAR_SPAWN_OFFSET = -30;
-const CAR_SPAWN_X = 1.17;   // 逆車線（左車線）
+const CAR_SPAWN_OFFSET = -100; // プレイヤー前方100単位（対向車として手前へ向かってくる）
+const CAR_SPAWN_X = 1.17;     // 左車線（対向車線）
 const CAR_LIFETIME_MS = 30000; // 登場後30秒で消滅
 
 function loadTrafficCar(filename, onLoaded) {
@@ -757,8 +757,8 @@ function updateAllTrafficCars(dt) {
       tc.done = true;
       continue;
     }
-    tc.mesh.position.z -= CAR_SPEED * dt;
-    if (tc.mesh.position.z <= PLAY_Z_MIN) tc.mesh.position.z += LOOP_LENGTH;
+    tc.mesh.position.z += CAR_SPEED * dt; // 対向車：+Z方向（プレイヤー側へ）
+    if (tc.mesh.position.z >= PLAY_Z_MAX) tc.mesh.position.z -= LOOP_LENGTH;
   }
 }
 
