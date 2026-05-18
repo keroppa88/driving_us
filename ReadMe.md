@@ -95,7 +95,7 @@
 * Bボタン(buttons[1]) ブレーキ（LTと同じ）
 * Yボタン(buttons[3]) 決定・再生停止
 * Aボタン(buttons[0]) 表示/非表示トグル
-* Xボタン           　画面Watch・カーソル解放
+* Xボタン(buttons[2])　画面Watch・カーソル解放
 * 十字上(buttons[12]) 曲を上に選択
 * 十字下(buttons[13]) 曲を下に選択
 * 十字左(buttons[14]) 巻き戻し -10秒
