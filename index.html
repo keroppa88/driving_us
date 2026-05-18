@@ -690,7 +690,10 @@ const extDesertPlane = addExtendedDesert();
 
 // ── トラフィックカー ────────────────────────────────────────────────────────
 const CAR_SPEED = MAX_CRUISE / 2;
-const CAR_SPAWN_OFFSET = -100; // プレイヤー前方100単位
+const CAR_SPAWN_OFFSET     = -100;                       // プレイヤー前方100単位
+const CAR_SPAWN_OFFSET_ABS =  100;                       // スポーンオフセット絶対値
+const SAMEDIR_EXIT_DIST    = CAR_SPAWN_OFFSET_ABS + LOOP_LENGTH / 2; // 追い抜き後消滅距離(=217)
+const SAMEDIR_LIFETIME_MS  = 180000;                     // 同方向車最大生存時間(3分)
 const ONCOMING_X =  1.17;     // 対向車線（左）
 const SAMEDIR_X  = -1.17;     // 同方向車線（右・プレイヤーと同じ）
 
@@ -718,14 +721,14 @@ function loadTrafficCar(filename, onLoaded) {
 // oncoming=true : 対向車（ONCOMING_X・180度回転・+Z移動）
 // oncoming=false: 同方向（SAMEDIR_X・0度・-Z移動）
 const trafficCars = [
-  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:     30*1000, lifetime: 30000, oncoming: true  }, //  30秒: 対向車 car01
-  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:    300*1000, lifetime: 30000, oncoming: true  }, //  5分: 対向車 car04
-  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:    600*1000, lifetime: 30000, oncoming: false }, // 10分: 同方向 car01
-  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:    900*1000, lifetime: 30000, oncoming: false }, // 15分: 同方向 car02
-  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:   1200*1000, lifetime: 30000, oncoming: true  }, // 20分: 対向車 car03
-  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:   1500*1000, lifetime: 30000, oncoming: true  }, // 25分: 対向車 car02
-  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:   1680*1000, lifetime: 30000, oncoming: false }, // 28分: 同方向 car03
-  { mesh: null, active: false, done: false, spawnElapsed: 0, spawnAt:   1800*1000, lifetime: 30000, oncoming: false }, // 30分: 同方向 car04
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:     30*1000, lifetime:  30000, oncoming: true  }, //  30秒: 対向車 car01
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:    300*1000, lifetime:  30000, oncoming: true  }, //  5分: 対向車 car04
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:    600*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 10分: 同方向 car01
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:    900*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 15分: 同方向 car02
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1200*1000, lifetime:  30000, oncoming: true  }, // 20分: 対向車 car03
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1500*1000, lifetime:  30000, oncoming: true  }, // 25分: 対向車 car02
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1680*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 28分: 同方向 car03
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1800*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 30分: 同方向 car04
 ];
 [
   'car01.glb', // [0]  30秒 対向車
@@ -745,6 +748,7 @@ function resetTrafficCars() {
     tc.active = false;
     tc.done = false;
     tc.spawnElapsed = 0;
+    tc.relDist = 0;
     if (tc.mesh) tc.mesh.visible = false;
   });
 }
@@ -759,15 +763,21 @@ function updateAllTrafficCars(dt) {
     if (!tc.active && !tc.done && elapsed >= tc.spawnAt) {
       const spawnX = tc.oncoming ? ONCOMING_X : SAMEDIR_X;
       let spawnZ = camera.position.z + CAR_SPAWN_OFFSET;
-      spawnZ = Math.max(spawnZ, PLAY_Z_MIN); // 道路外にスポーンしないようクランプ
+      if (tc.oncoming) {
+        spawnZ = Math.max(spawnZ, PLAY_Z_MIN); // 対向車: 道路外にスポーンしないようクランプ
+      } else {
+        if (spawnZ < PLAY_Z_MIN) spawnZ += LOOP_LENGTH; // 同方向車: 折り返しスポーン
+      }
       tc.mesh.position.set(spawnX, 0, spawnZ);
       tc.mesh.rotation.y = tc.oncoming ? Math.PI : 0;
       tc.mesh.visible = true;
       tc.active = true;
       tc.spawnElapsed = elapsed;
+      tc.relDist = 0;
     }
     if (!tc.active) continue;
 
+    // 時間による消滅（対向車は30秒、同方向車は3分）
     if (elapsed - tc.spawnElapsed >= tc.lifetime) {
       tc.mesh.visible = false;
       tc.active = false;
@@ -781,7 +791,10 @@ function updateAllTrafficCars(dt) {
       }
     } else {
       tc.mesh.position.z -= CAR_SPEED * dt;
-      if (tc.mesh.position.z < PLAY_Z_MIN) {
+      if (tc.mesh.position.z < PLAY_Z_MIN) tc.mesh.position.z += LOOP_LENGTH; // ループ折り返し
+      // 距離による消滅: 追い抜いてマップ半分の距離が開いたら消滅
+      tc.relDist += playerZDeltaFrame - CAR_SPEED * dt;
+      if (tc.relDist >= SAMEDIR_EXIT_DIST) {
         tc.mesh.visible = false; tc.active = false; tc.done = true;
       }
     }
@@ -1180,12 +1193,17 @@ const mountainRings = buildMountainRings();
 
 // ── レンダーループ ────────────────────────────────────────────────────────
 let _animT0 = performance.now();
+let playerZDeltaFrame = 0;
 function animate() {
   requestAnimationFrame(animate);
   const _now = performance.now();
   const _dt = Math.min((_now - _animT0) / 1000, 0.05);
   _animT0 = _now;
+  const _prevCamZ = camera.position.z;
   updateMovement();
+  // プレイヤーの1フレームあたりのZ移動量（正=前進方向）
+  playerZDeltaFrame = _prevCamZ - camera.position.z;
+  if (playerZDeltaFrame < -LOOP_LENGTH / 2) playerZDeltaFrame += LOOP_LENGTH; // ループ補正
   updateAllTrafficCars(_dt);
   for (const ring of mountainRings) {
     ring.position.x = camera.position.x;
