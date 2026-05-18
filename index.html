@@ -759,7 +759,7 @@ function updateAllTrafficCars(dt) {
     if (!tc.active && !tc.done && elapsed >= tc.spawnAt) {
       const spawnX = tc.oncoming ? ONCOMING_X : SAMEDIR_X;
       let spawnZ = camera.position.z + CAR_SPAWN_OFFSET;
-      if (spawnZ < PLAY_Z_MIN) spawnZ += LOOP_LENGTH;
+      spawnZ = Math.max(spawnZ, PLAY_Z_MIN); // 道路外にスポーンしないようクランプ
       tc.mesh.position.set(spawnX, 0, spawnZ);
       tc.mesh.rotation.y = tc.oncoming ? Math.PI : 0;
       tc.mesh.visible = true;
