@@ -677,8 +677,10 @@ function addExtendedDesert() {
 const extDesertPlane = addExtendedDesert();
 
 // ── トラフィックカー ────────────────────────────────────────────────────────
-let car01 = null, car01Active = false, car01T0 = 0;
+let car01 = null, car01Active = false;
+let car01GainedDist = -30; // 負値=車が前方。0で並走、正値=プレイヤーが先行
 const CAR01_SPEED = MAX_CRUISE / 2;
+const CAR01_SPAWN_OFFSET = -30; // スポーン時のプレイヤー前方距離
 const CAR01_SPAWN_X = -1.17; // 右車線（オートパイロットと同じ）
 
 new GLTFLoader().load('car01.glb?v=' + Date.now(), gltf => {
@@ -704,11 +706,22 @@ function updateCar01(dt) {
   // 15秒後にスポーン
   if (!car01Active && gameStartTime !== null &&
       (performance.now() - gameStartTime) >= 15000) {
-    car01.position.set(CAR01_SPAWN_X, 0, camera.position.z - 30);
+    car01.position.set(CAR01_SPAWN_X, 0, camera.position.z + CAR01_SPAWN_OFFSET);
     car01.visible = true;
     car01Active = true;
+    car01GainedDist = CAR01_SPAWN_OFFSET; // -30（車が前方30単位）
   }
   if (!car01Active) return;
+
+  // プレイヤーとの相対ゲイン（位置ループに依存しない速度ベース計算）
+  car01GainedDist += (cruiseSpeed - CAR01_SPEED) * dt;
+  if (car01GainedDist >= LOOP_LENGTH) {
+    // 1MAP分リードしたら消滅
+    car01.visible = false;
+    car01Active = false;
+    return;
+  }
+
   car01.position.z -= CAR01_SPEED * dt;
   if (car01.position.z <= PLAY_Z_MIN) car01.position.z += LOOP_LENGTH;
 }
