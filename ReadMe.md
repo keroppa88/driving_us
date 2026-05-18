@@ -4,9 +4,6 @@
 > <img width="300" height="250" alt="image" src="https://github.com/user-attachments/assets/1621a1ed-93d1-4468-9b0c-4d622bccf20f" />
 
 > <img width="300" height="280" alt="image" src="https://github.com/user-attachments/assets/ab0481bf-4cc4-4d1e-b128-5d759726112a" />
-
-<img width="300" height="255" alt="image" src="https://github.com/user-attachments/assets/f2beb8f8-d07c-4eea-8a6b-a3c9ef0b3951" />
-
   
 ### アメリカの砂漠道路を走りながら音楽を楽しむ雰囲気系ゲーム。
 * スタン・ハンセン、テリーマン、イージーライダー、西部劇、、、アメリカ西部の砂漠を走るイメージ。
@@ -80,7 +77,9 @@
 
 > <img width="300" height="320" alt="image" src="https://github.com/user-attachments/assets/4fbee28e-7c48-4b03-8076-ec77f5b4bdf4" />
  
-<img width="300" height="200" alt="593546826-fcb7e5aa-028e-4746-9535-51f010ee789b" src="https://github.com/user-attachments/assets/8b117383-fa22-407b-a893-bf62496e2b7b" />
+> <img width="300" height="200" alt="593546826-fcb7e5aa-028e-4746-9535-51f010ee789b" src="https://github.com/user-attachments/assets/8b117383-fa22-407b-a893-bf62496e2b7b" />
+
+> <img width="300" height="255" alt="image" src="https://github.com/user-attachments/assets/f2beb8f8-d07c-4eea-8a6b-a3c9ef0b3951" />
 
 ## インストール
 * ウェブのブラウザでプレイできる。
