@@ -959,8 +959,10 @@ loadPlaylist().then(() => initYTPlayer()).catch(console.error);
 
 startBtn.addEventListener('click', () => {
   audioCtx.resume();
-  gameStartTime = performance.now();
-  resetTrafficCars();
+  if (gameStartTime === null || trafficCars.every(tc => tc.done)) {
+    gameStartTime = performance.now();
+    resetTrafficCars();
+  }
   const p = document.body.requestPointerLock();
   if (p && typeof p.catch === 'function') p.catch(() => {});
 });
