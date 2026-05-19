@@ -540,7 +540,7 @@ let rainActive = false;
 // ── 靄パーティクルシステム ────────────────────────────────────────────────
 let hazeMistMat = null;
 {
-  const CNT = 500000, SPREAD = 6, HEIGHT = 6, EYE_Y = 0.27;
+  const CNT = 500000, SPREAD = 15, HEIGHT = 6, EYE_Y = 0.27;
   const pos = new Float32Array(CNT * 3);
   for (let i = 0; i < CNT; i++) {
     pos[i*3]   = (Math.random() - 0.5) * SPREAD * 2;
