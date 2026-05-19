@@ -543,17 +543,17 @@ let rainActive = false;
 // ── 靄パーティクルシステム ────────────────────────────────────────────────
 let hazeMistMat = null;
 {
-  const CNT = 20000, SPREAD = 65, HEIGHT = 6, DRIFT = 0.004;
+  const CNT = 20000, SPREAD = 65, HEIGHT = 6, EYE_Y = 0.27;
   const pos = new Float32Array(CNT * 3);
   for (let i = 0; i < CNT; i++) {
     pos[i*3]   = (Math.random() - 0.5) * SPREAD * 2;
-    pos[i*3+1] = Math.random() * HEIGHT;
+    pos[i*3+1] = (Math.random() - 0.5) * HEIGHT + EYE_Y; // 視点高さを中心に上下に分布
     pos[i*3+2] = (Math.random() - 0.5) * SPREAD * 2;
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   hazeMistMat = new THREE.PointsMaterial({
-    color: 0xe8e8e8, size: 0.5, sizeAttenuation: true,
+    color: 0xe8e8e8, size: 0.1, sizeAttenuation: true,
     transparent: true, opacity: 0, depthWrite: false, fog: false,
   });
   const hazeMistSystem = new THREE.Points(geo, hazeMistMat);
@@ -567,17 +567,6 @@ let hazeMistMat = null;
     hazeMistSystem.visible = hazeMistMat.opacity > 0.002;
     if (!hazeMistSystem.visible) return;
     hazeMistMat.color.lerp(hazeColorTarget, 0.05);
-    const p = geo.attributes.position.array;
-    for (let i = 0; i < CNT; i++) {
-      const b = i * 3;
-      p[b+1] -= DRIFT;
-      if (p[b+1] < -1) {
-        p[b]   = (Math.random() - 0.5) * SPREAD * 2;
-        p[b+1] = HEIGHT + Math.random() * 2;
-        p[b+2] = (Math.random() - 0.5) * SPREAD * 2;
-      }
-    }
-    geo.attributes.position.needsUpdate = true;
     hazeMistSystem.position.set(camera.position.x, 0, camera.position.z);
   };
 }
