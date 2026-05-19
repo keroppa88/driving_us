@@ -357,17 +357,14 @@ function confirmTrack() {
   connectingEl.style.display = 'block';
   connectingEl.textContent = `${trackLabel(entry)}　接続中・・・`;
   if (entry.color) setSkyFromColor(entry.color, !!entry.solid);
+  setSkyHorizBand(entry.horiz);
   if (entry.haze) {
     hazeActive = true;
     hazeColorTarget.set(entry.haze);
     fogDensityTarget = FOG_DENSITY_HAZE;
-    // 地平線バンドを靄色にして3D霧と空を繋ぐ
-    skyHorizBandTarget.set(entry.haze);
-    skyHorizTarget.set(entry.haze);
   } else {
     hazeActive = false;
     fogDensityTarget = FOG_DENSITY_NORMAL;
-    setSkyHorizBand(entry.horiz);
   }
   rainActive = !!entry.rain;
   starActive = !!entry.star;
