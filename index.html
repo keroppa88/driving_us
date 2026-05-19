@@ -543,11 +543,11 @@ let rainActive = false;
 // ── 靄パーティクルシステム ────────────────────────────────────────────────
 let hazeMistMat = null;
 {
-  const CNT = 20000, SPREAD = 65, HEIGHT = 6;
+  const CNT = 20000, SPREAD = 65, HEIGHT = 6, EYE_Y = 0.27;
   const pos = new Float32Array(CNT * 3);
   for (let i = 0; i < CNT; i++) {
     pos[i*3]   = (Math.random() - 0.5) * SPREAD * 2;
-    pos[i*3+1] = Math.random() * HEIGHT;
+    pos[i*3+1] = (Math.random() - 0.5) * HEIGHT + EYE_Y; // 視点高さを中心に上下に分布
     pos[i*3+2] = (Math.random() - 0.5) * SPREAD * 2;
   }
   const geo = new THREE.BufferGeometry();
