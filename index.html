@@ -553,7 +553,7 @@ let hazeMistMat = null;
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   hazeMistMat = new THREE.PointsMaterial({
-    color: 0xe8e8e8, size: 0.03, sizeAttenuation: true,
+    color: 0xe8e8e8, size: 0.05, sizeAttenuation: true,
     transparent: true, opacity: 0, depthWrite: false, fog: false,
   });
   const hazeMistSystem = new THREE.Points(geo, hazeMistMat);
