@@ -557,8 +557,10 @@ let rainActive = false;
     const r = Math.round(c.r * 255);
     const g = Math.round(c.g * 255);
     const b = Math.round(c.b * 255);
+    const a = hazeOverlayOpacity.toFixed(4);
+    // 下部（地面・道路）のみ。地平線より上は透明。
     hazeEl.style.background =
-      `rgba(${r},${g},${b},${hazeOverlayOpacity.toFixed(4)})`;
+      `linear-gradient(to top, rgba(${r},${g},${b},${a}) 0%, rgba(${r},${g},${b},${(hazeOverlayOpacity * 0.4).toFixed(4)}) 45%, transparent 60%)`;
   };
 }
 
