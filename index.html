@@ -1272,6 +1272,7 @@ function buildMountainRings() {
       transparent: true,
       alphaTest: 0.05,
       depthWrite: false,
+      fog: false,
     });
     const mesh = new THREE.Mesh(
       new THREE.CylinderGeometry(L.r, L.r, L.h, 64, 1, true),
