@@ -230,6 +230,13 @@ let skyTopTarget       = new THREE.Color(0x4a6fa0);
 let skyHorizTarget     = new THREE.Color(0xc8daf0);
 let skyHorizBandTarget = new THREE.Color(0xc8daf0);
 
+// 靄エフェクト
+const FOG_DENSITY_NORMAL = 0.0075;
+const FOG_DENSITY_HAZE   = 0.022;
+let fogDensityTarget = FOG_DENSITY_NORMAL;
+let hazeActive       = false;
+let hazeColorTarget  = new THREE.Color(0xe8e8e8);
+
 let skyIsBlack = false;
 function setSkyFromColor(hex, solid = false) {
   skyIsBlack = (hex.toLowerCase() === '#000000');
@@ -299,12 +306,14 @@ async function loadPlaylist() {
         const solid = /単色/.test(keywords);
         const horizMatch = keywords.match(/地平線(#[0-9a-fA-F]{6})/);
         const horiz = horizMatch ? horizMatch[1] : null;
+        const hazeMatch = keywords.match(/靄(#[0-9a-fA-F]{6})?/);
+        const haze = hazeMatch ? (hazeMatch[1] || '#e8e8e8') : null;
         const volMatch = keywords.match(/音量([+-]\d+)%/);
         const volAdj = volMatch ? 1 + parseInt(volMatch[1]) / 100 : 1.0;
         const cleanUrl = urlPart.replace(/&amp;/g, '&');
         const isYT = /youtube\.com|youtu\.be/.test(cleanUrl);
         const vid  = isYT ? (cleanUrl.match(/[?&]v=([^&]+)/)?.[1] || cleanUrl) : cleanUrl;
-        return { id: vid, type: isYT ? 'yt' : 'radio', name, color, rain, star, solid, horiz, volAdj };
+        return { id: vid, type: isYT ? 'yt' : 'radio', name, color, rain, star, solid, horiz, haze, volAdj };
       });
     const valid = entries.filter(Boolean);
     if (valid.length > 0) { playlist = valid; console.log('[playlist]', valid.length, 'tracks'); }
@@ -349,6 +358,14 @@ function confirmTrack() {
   connectingEl.textContent = `${trackLabel(entry)}　接続中・・・`;
   if (entry.color) setSkyFromColor(entry.color, !!entry.solid);
   setSkyHorizBand(entry.horiz);
+  if (entry.haze) {
+    hazeActive = true;
+    hazeColorTarget.set(entry.haze);
+    fogDensityTarget = FOG_DENSITY_HAZE;
+  } else {
+    hazeActive = false;
+    fogDensityTarget = FOG_DENSITY_NORMAL;
+  }
   rainActive = !!entry.rain;
   starActive = !!entry.star;
   baseVol = parseInt(ytVolSlider.value);
@@ -1282,7 +1299,8 @@ function animate() {
   skyUniforms.topColor.value.lerp(skyTopTarget, sp);
   skyUniforms.horizonColor.value.lerp(skyHorizTarget, sp);
   skyUniforms.horizonBandColor.value.lerp(skyHorizBandTarget, sp);
-  scene.fog.color.lerp(skyHorizTarget, sp);
+  scene.fog.density += (fogDensityTarget - scene.fog.density) * 0.008;
+  scene.fog.color.lerp(hazeActive ? hazeColorTarget : skyHorizTarget, sp);
   skyMesh.position.copy(camera.position);
   window._updateRain();
   window._updateStars();
