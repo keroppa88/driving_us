@@ -539,12 +539,14 @@ let rainActive = false;
 
 // ── 靄パーティクルシステム ────────────────────────────────────────────────
 let hazeMistMat = null;
+let hazeMistMatNear = null;
 {
-  const CNT = 500000, SPREAD = 4, HEIGHT = 6, EYE_Y = 0.27;
+  // ── 静止層: 500K粒子、SPREAD=2の広域背景 ──
+  const CNT = 500000, SPREAD = 2, HEIGHT = 6, EYE_Y = 0.27;
   const pos = new Float32Array(CNT * 3);
   for (let i = 0; i < CNT; i++) {
     pos[i*3]   = (Math.random() - 0.5) * SPREAD * 2;
-    pos[i*3+1] = (Math.random() - 0.5) * HEIGHT + EYE_Y; // 視点高さを中心に上下に分布
+    pos[i*3+1] = (Math.random() - 0.5) * HEIGHT + EYE_Y;
     pos[i*3+2] = (Math.random() - 0.5) * SPREAD * 2;
   }
   const geo = new THREE.BufferGeometry();
@@ -558,13 +560,56 @@ let hazeMistMat = null;
   hazeMistSystem.frustumCulled = false;
   scene.add(hazeMistSystem);
 
+  // ── 動的近距離層: 5000粒子、SPREAD=1.2の近くだけゆっくり漂う ──
+  const NCNT = 5000, NSPREAD = 1.2, NHEIGHT = 3;
+  const npos = new Float32Array(NCNT * 3);
+  const nvel = new Float32Array(NCNT * 3);
+  for (let i = 0; i < NCNT; i++) {
+    npos[i*3]   = (Math.random() - 0.5) * NSPREAD * 2;
+    npos[i*3+1] = (Math.random() - 0.5) * NHEIGHT + EYE_Y;
+    npos[i*3+2] = (Math.random() - 0.5) * NSPREAD * 2;
+    nvel[i*3]   = (Math.random() - 0.5) * 0.0003;
+    nvel[i*3+1] = (Math.random() - 0.5) * 0.00008;
+    nvel[i*3+2] = (Math.random() - 0.5) * 0.0003;
+  }
+  const ngeo = new THREE.BufferGeometry();
+  ngeo.setAttribute('position', new THREE.BufferAttribute(npos, 3));
+  hazeMistMatNear = new THREE.PointsMaterial({
+    color: 0xe8e8e8, size: 0.0001, sizeAttenuation: true,
+    transparent: true, opacity: 0, depthWrite: false, fog: false,
+  });
+  const hazeMistNear = new THREE.Points(ngeo, hazeMistMatNear);
+  hazeMistNear.visible = false;
+  hazeMistNear.frustumCulled = false;
+  scene.add(hazeMistNear);
+
   window._updateHazeMist = function() {
     const targetOpacity = hazeActive ? 0.45 : 0;
     hazeMistMat.opacity += (targetOpacity - hazeMistMat.opacity) * 0.015;
+    hazeMistMatNear.opacity += (targetOpacity - hazeMistMatNear.opacity) * 0.015;
     hazeMistSystem.visible = hazeMistMat.opacity > 0.002;
-    if (!hazeMistSystem.visible) return;
+    hazeMistNear.visible   = hazeMistMatNear.opacity > 0.002;
     hazeMistMat.color.lerp(hazeColorTarget, 0.05);
+    hazeMistMatNear.color.lerp(hazeColorTarget, 0.05);
+    // 静止層はカメラに追随するだけ
     hazeMistSystem.position.set(camera.position.x, 0, camera.position.z);
+    // 近距離層: 個別粒子をゆっくり移動
+    if (hazeMistNear.visible) {
+      hazeMistNear.position.set(camera.position.x, 0, camera.position.z);
+      const attr = ngeo.attributes.position;
+      for (let i = 0; i < NCNT; i++) {
+        attr.array[i*3]   += nvel[i*3];
+        attr.array[i*3+1] += nvel[i*3+1];
+        attr.array[i*3+2] += nvel[i*3+2];
+        if (attr.array[i*3]   >  NSPREAD) attr.array[i*3]   -= NSPREAD * 2;
+        if (attr.array[i*3]   < -NSPREAD) attr.array[i*3]   += NSPREAD * 2;
+        if (attr.array[i*3+1] >  EYE_Y + NHEIGHT/2) attr.array[i*3+1] -= NHEIGHT;
+        if (attr.array[i*3+1] <  EYE_Y - NHEIGHT/2) attr.array[i*3+1] += NHEIGHT;
+        if (attr.array[i*3+2] >  NSPREAD) attr.array[i*3+2] -= NSPREAD * 2;
+        if (attr.array[i*3+2] < -NSPREAD) attr.array[i*3+2] += NSPREAD * 2;
+      }
+      attr.needsUpdate = true;
+    }
   };
 }
 
