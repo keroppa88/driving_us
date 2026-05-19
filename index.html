@@ -63,11 +63,6 @@
     text-shadow: 0 0 4px #000;
   }
   #overlay-body { width: fit-content; display: flex; flex-direction: column; align-items: center; }
-  #haze-overlay {
-    position: fixed; inset: 0; pointer-events: none; z-index: 4;
-    background: transparent;
-    transition: none;
-  }
   .controls { margin: 0.8em 0; display: table; border: 1px solid #444; border-radius: 4px; border-spacing: 0; padding: 0.4em 0.6em; }
   .ctrl-row {
     display: table-row;
@@ -126,7 +121,6 @@
   <div id="yt-container"></div>
 </div>
 
-<div id="haze-overlay"></div>
 <div id="crosshair"></div>
 <div id="connecting">接続中・・・</div>
 <div id="coords"></div>
@@ -236,12 +230,7 @@ let skyTopTarget       = new THREE.Color(0x4a6fa0);
 let skyHorizTarget     = new THREE.Color(0xc8daf0);
 let skyHorizBandTarget = new THREE.Color(0xc8daf0);
 
-// 靄エフェクト
 const FOG_DENSITY_NORMAL = 0.0075;
-const FOG_DENSITY_HAZE   = 0.03;
-let fogDensityTarget = FOG_DENSITY_NORMAL;
-let hazeActive       = false;
-let hazeColorTarget  = new THREE.Color(0xe8e8e8);
 
 let skyIsBlack = false;
 function setSkyFromColor(hex, solid = false) {
@@ -312,14 +301,12 @@ async function loadPlaylist() {
         const solid = /単色/.test(keywords);
         const horizMatch = keywords.match(/地平線(#[0-9a-fA-F]{6})/);
         const horiz = horizMatch ? horizMatch[1] : null;
-        const hazeMatch = keywords.match(/靄(#[0-9a-fA-F]{6})?/);
-        const haze = hazeMatch ? (hazeMatch[1] || '#e8e8e8') : null;
         const volMatch = keywords.match(/音量([+-]\d+)%/);
         const volAdj = volMatch ? 1 + parseInt(volMatch[1]) / 100 : 1.0;
         const cleanUrl = urlPart.replace(/&amp;/g, '&');
         const isYT = /youtube\.com|youtu\.be/.test(cleanUrl);
         const vid  = isYT ? (cleanUrl.match(/[?&]v=([^&]+)/)?.[1] || cleanUrl) : cleanUrl;
-        return { id: vid, type: isYT ? 'yt' : 'radio', name, color, rain, star, solid, horiz, haze, volAdj };
+        return { id: vid, type: isYT ? 'yt' : 'radio', name, color, rain, star, solid, horiz, volAdj };
       });
     const valid = entries.filter(Boolean);
     if (valid.length > 0) { playlist = valid; console.log('[playlist]', valid.length, 'tracks'); }
@@ -364,14 +351,6 @@ function confirmTrack() {
   connectingEl.textContent = `${trackLabel(entry)}　接続中・・・`;
   if (entry.color) setSkyFromColor(entry.color, !!entry.solid);
   setSkyHorizBand(entry.horiz);
-  if (entry.haze) {
-    hazeActive = true;
-    hazeColorTarget.set(entry.haze);
-    fogDensityTarget = FOG_DENSITY_HAZE;
-  } else {
-    hazeActive = false;
-    fogDensityTarget = FOG_DENSITY_NORMAL;
-  }
   rainActive = !!entry.rain;
   starActive = !!entry.star;
   baseVol = parseInt(ytVolSlider.value);
@@ -540,27 +519,6 @@ let rainActive = false;
     }
     rainSystem.geometry.attributes.position.needsUpdate = true;
     rainSystem.position.set(camera.position.x, 0, camera.position.z);
-  };
-}
-
-// ── 靄パーティクルシステム ────────────────────────────────────────────────
-// ── 靄オーバーレイ（CSSフィルター方式） ──────────────────────────────────
-{
-  const hazeEl = document.getElementById('haze-overlay');
-  const hazeRGB = { r: 0xe8, g: 0xe8, b: 0xe8 };
-  let hazeOverlayOpacity = 0;
-
-  window._updateHazeMist = function() {
-    const targetOpacity = hazeActive ? 0.18 : 0;
-    hazeOverlayOpacity += (targetOpacity - hazeOverlayOpacity) * 0.015;
-    const c = hazeColorTarget;
-    const r = Math.round(c.r * 255);
-    const g = Math.round(c.g * 255);
-    const b = Math.round(c.b * 255);
-    const a = hazeOverlayOpacity.toFixed(4);
-    // 下部（地面・道路）のみ。地平線より上は透明。
-    hazeEl.style.background =
-      `linear-gradient(to top, rgba(${r},${g},${b},${a}) 0%, rgba(${r},${g},${b},${(hazeOverlayOpacity * 0.4).toFixed(4)}) 45%, transparent 60%)`;
   };
 }
 
@@ -1327,12 +1285,11 @@ function animate() {
   skyUniforms.topColor.value.lerp(skyTopTarget, sp);
   skyUniforms.horizonColor.value.lerp(skyHorizTarget, sp);
   skyUniforms.horizonBandColor.value.lerp(skyHorizBandTarget, sp);
-  scene.fog.density += (fogDensityTarget - scene.fog.density) * 0.008;
-  scene.fog.color.lerp(hazeActive ? hazeColorTarget : skyHorizTarget, sp);
+  scene.fog.density = FOG_DENSITY_NORMAL;
+  scene.fog.color.lerp(skyHorizTarget, sp);
   skyMesh.position.copy(camera.position);
   window._updateRain();
   window._updateStars();
-  window._updateHazeMist();
   checkSpecialSchedule();
   document.getElementById('coords').textContent =
     `${Math.round(cruiseSpeed / MAX_CRUISE * 120)} km/h`;
