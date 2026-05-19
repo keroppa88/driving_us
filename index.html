@@ -232,7 +232,7 @@ let skyHorizBandTarget = new THREE.Color(0xc8daf0);
 
 // 靄エフェクト
 const FOG_DENSITY_NORMAL = 0.0075;
-const FOG_DENSITY_HAZE   = 0.022;
+const FOG_DENSITY_HAZE   = 0.03;
 let fogDensityTarget = FOG_DENSITY_NORMAL;
 let hazeActive       = false;
 let hazeColorTarget  = new THREE.Color(0xe8e8e8);
@@ -357,14 +357,17 @@ function confirmTrack() {
   connectingEl.style.display = 'block';
   connectingEl.textContent = `${trackLabel(entry)}　接続中・・・`;
   if (entry.color) setSkyFromColor(entry.color, !!entry.solid);
-  setSkyHorizBand(entry.horiz);
   if (entry.haze) {
     hazeActive = true;
     hazeColorTarget.set(entry.haze);
     fogDensityTarget = FOG_DENSITY_HAZE;
+    // 地平線バンドを靄色にして3D霧と空を繋ぐ
+    skyHorizBandTarget.set(entry.haze);
+    skyHorizTarget.set(entry.haze);
   } else {
     hazeActive = false;
     fogDensityTarget = FOG_DENSITY_NORMAL;
+    setSkyHorizBand(entry.horiz);
   }
   rainActive = !!entry.rain;
   starActive = !!entry.star;
@@ -534,6 +537,48 @@ let rainActive = false;
     }
     rainSystem.geometry.attributes.position.needsUpdate = true;
     rainSystem.position.set(camera.position.x, 0, camera.position.z);
+  };
+}
+
+// ── 靄パーティクルシステム ────────────────────────────────────────────────
+let hazeMistMat = null;
+{
+  const CNT = 20000, SPREAD = 65, HEIGHT = 6, DRIFT = 0.004;
+  const pos = new Float32Array(CNT * 3);
+  for (let i = 0; i < CNT; i++) {
+    pos[i*3]   = (Math.random() - 0.5) * SPREAD * 2;
+    pos[i*3+1] = Math.random() * HEIGHT;
+    pos[i*3+2] = (Math.random() - 0.5) * SPREAD * 2;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  hazeMistMat = new THREE.PointsMaterial({
+    color: 0xe8e8e8, size: 0.5, sizeAttenuation: true,
+    transparent: true, opacity: 0, depthWrite: false, fog: false,
+  });
+  const hazeMistSystem = new THREE.Points(geo, hazeMistMat);
+  hazeMistSystem.visible = false;
+  hazeMistSystem.frustumCulled = false;
+  scene.add(hazeMistSystem);
+
+  window._updateHazeMist = function() {
+    const targetOpacity = hazeActive ? 0.45 : 0;
+    hazeMistMat.opacity += (targetOpacity - hazeMistMat.opacity) * 0.015;
+    hazeMistSystem.visible = hazeMistMat.opacity > 0.002;
+    if (!hazeMistSystem.visible) return;
+    hazeMistMat.color.lerp(hazeColorTarget, 0.05);
+    const p = geo.attributes.position.array;
+    for (let i = 0; i < CNT; i++) {
+      const b = i * 3;
+      p[b+1] -= DRIFT;
+      if (p[b+1] < -1) {
+        p[b]   = (Math.random() - 0.5) * SPREAD * 2;
+        p[b+1] = HEIGHT + Math.random() * 2;
+        p[b+2] = (Math.random() - 0.5) * SPREAD * 2;
+      }
+    }
+    geo.attributes.position.needsUpdate = true;
+    hazeMistSystem.position.set(camera.position.x, 0, camera.position.z);
   };
 }
 
@@ -1304,6 +1349,7 @@ function animate() {
   skyMesh.position.copy(camera.position);
   window._updateRain();
   window._updateStars();
+  window._updateHazeMist();
   checkSpecialSchedule();
   document.getElementById('coords').textContent =
     `${Math.round(cruiseSpeed / MAX_CRUISE * 120)} km/h`;
