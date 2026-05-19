@@ -232,7 +232,7 @@ let skyHorizBandTarget = new THREE.Color(0xc8daf0);
 
 // 靄エフェクト
 const FOG_DENSITY_NORMAL = 0.0075;
-const FOG_DENSITY_HAZE   = 0.022;
+const FOG_DENSITY_HAZE   = 0.03;
 let fogDensityTarget = FOG_DENSITY_NORMAL;
 let hazeActive       = false;
 let hazeColorTarget  = new THREE.Color(0xe8e8e8);
@@ -357,14 +357,17 @@ function confirmTrack() {
   connectingEl.style.display = 'block';
   connectingEl.textContent = `${trackLabel(entry)}　接続中・・・`;
   if (entry.color) setSkyFromColor(entry.color, !!entry.solid);
-  setSkyHorizBand(entry.horiz);
   if (entry.haze) {
     hazeActive = true;
     hazeColorTarget.set(entry.haze);
     fogDensityTarget = FOG_DENSITY_HAZE;
+    // 地平線バンドを靄色にして3D霧と空を繋ぐ
+    skyHorizBandTarget.set(entry.haze);
+    skyHorizTarget.set(entry.haze);
   } else {
     hazeActive = false;
     fogDensityTarget = FOG_DENSITY_NORMAL;
+    setSkyHorizBand(entry.horiz);
   }
   rainActive = !!entry.rain;
   starActive = !!entry.star;
