@@ -568,9 +568,9 @@ let hazeMistMatNear = null;
     npos[i*3]   = (Math.random() - 0.5) * NSPREAD * 2;
     npos[i*3+1] = (Math.random() - 0.5) * NHEIGHT + EYE_Y;
     npos[i*3+2] = (Math.random() - 0.5) * NSPREAD * 2;
-    nvel[i*3]   = (Math.random() - 0.5) * 0.001;
-    nvel[i*3+1] = (Math.random() - 0.5) * 0.0003;
-    nvel[i*3+2] = (Math.random() - 0.5) * 0.001;
+    nvel[i*3]   = (Math.random() - 0.5) * 0.0003;
+    nvel[i*3+1] = (Math.random() - 0.5) * 0.00008;
+    nvel[i*3+2] = (Math.random() - 0.5) * 0.0003;
   }
   const ngeo = new THREE.BufferGeometry();
   ngeo.setAttribute('position', new THREE.BufferAttribute(npos, 3));
