@@ -540,7 +540,7 @@ let rainActive = false;
 // ── 靄パーティクルシステム ────────────────────────────────────────────────
 let hazeMistMat = null;
 {
-  const CNT = 500000, SPREAD = 15, HEIGHT = 6, EYE_Y = 0.27;
+  const CNT = 500000, SPREAD = 4, HEIGHT = 6, EYE_Y = 0.27;
   const pos = new Float32Array(CNT * 3);
   for (let i = 0; i < CNT; i++) {
     pos[i*3]   = (Math.random() - 0.5) * SPREAD * 2;
@@ -550,7 +550,7 @@ let hazeMistMat = null;
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   hazeMistMat = new THREE.PointsMaterial({
-    color: 0xe8e8e8, size: 0.003, sizeAttenuation: true,
+    color: 0xe8e8e8, size: 0.0001, sizeAttenuation: true,
     transparent: true, opacity: 0, depthWrite: false, fog: false,
   });
   const hazeMistSystem = new THREE.Points(geo, hazeMistMat);
