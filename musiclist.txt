@@ -26,7 +26,7 @@ https://media-ssl.musicradio.com/ClassicFM 「Radio,UK/Classic FM」
 Music
 https://www.youtube.com/watch?v=EPSzkpNucV8   「Dooley Wilson,As Time Goes By (1942)」
 https://www.youtube.com/watch?v=KaFtsqU2V6U	　「Nat King Cole,Too Young (1951)」	#0099ff
-https://www.youtube.com/watch?v=purfXvu24Ps	　「Chet Baker,You Don't Know What Love Is (1953)」	靄#f5f5f5　雨
+https://www.youtube.com/watch?v=purfXvu24Ps	　「Chet Baker,You Don't Know What Love Is (1953)」	靄#f294a5　雨
 https://www.youtube.com/watch?v=B2YwGBVSfFQ   「Elvis Presley,Don't Be Cruel (1956)」
 https://www.youtube.com/watch?v=-9dtQzg7gDM   「Elvis Presley,Love Me Tender (1956)」
 https://www.youtube.com/watch?v=Y-9Y4CCIWnM   「Chuck Berry,Johnny Be Goode (1958)」
