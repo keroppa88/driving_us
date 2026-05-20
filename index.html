@@ -742,23 +742,23 @@ function loadTrafficCar(filename, onLoaded) {
 // oncoming=false: 同方向（SAMEDIR_X・0度・-Z移動）
 const trafficCars = [
   { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:     30*1000, lifetime:  30000, oncoming: true  }, //  30秒: 対向車 car01
-  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:    300*1000, lifetime:  30000, oncoming: true  }, //  5分: 対向車 car04
-  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:    600*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 10分: 同方向 car01
-  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:    900*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 15分: 同方向 car02
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:     90*1000, lifetime:  30000, oncoming: true  }, // 1分30秒: 対向車 car05
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:    240*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, //  4分: 同方向 car02
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:    600*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 10分: 同方向 car04
   { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1200*1000, lifetime:  30000, oncoming: true  }, // 20分: 対向車 car03
-  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1500*1000, lifetime:  30000, oncoming: true  }, // 25分: 対向車 car02
-  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1680*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 28分: 同方向 car03
-  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1800*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 30分: 同方向 car04
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1500*1000, lifetime:  30000, oncoming: true  }, // 25分: 対向車 car06
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1680*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 28分: 同方向 car02
+  { mesh: null, active: false, done: false, spawnElapsed: 0, relDist: 0, spawnAt:   1800*1000, lifetime: SAMEDIR_LIFETIME_MS, oncoming: false }, // 30分: 同方向 car01
 ];
 [
-  'car01.glb', // [0]  30秒 対向車
-  'car04.glb', // [1]  5分  対向車
-  'car01.glb', // [2] 10分  同方向（car01の2回目ロード）
-  'car02.glb', // [3] 15分  同方向
-  'car03.glb', // [4] 20分  対向車
-  'car02.glb', // [5] 25分  対向車（car02の2回目ロード）
-  'car03.glb', // [6] 28分  同方向（car03の2回目ロード）
-  'car04.glb', // [7] 30分  同方向（car04の2回目ロード）
+  'car01.glb', // [0]  30秒  対向車
+  'car05.glb', // [1] 1分30秒 対向車
+  'car02.glb', // [2]  4分   同方向
+  'car04.glb', // [3] 10分   同方向
+  'car03.glb', // [4] 20分   対向車
+  'car06.glb', // [5] 25分   対向車
+  'car02.glb', // [6] 28分   同方向（car02の2回目ロード）
+  'car01.glb', // [7] 30分   同方向（car01の2回目ロード）
 ].forEach((f, i) => {
   loadTrafficCar(f, m => { trafficCars[i].mesh = m; });
 });
